@@ -146,6 +146,14 @@
       font-weight: 600;
       font-size: 16px;
       border: 1px solid var(--gold-soft);
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .btn {
@@ -768,6 +776,13 @@
       object-fit: cover;
     }
 
+    .upload-box.round {
+      border-radius: 50%;
+      max-width: 160px;
+      max-height: 160px;
+      margin: 0 auto;
+    }
+
     .guideline-list {
       font-size: 12.5px;
       color: var(--ink-dim);
@@ -1107,6 +1122,24 @@
       display: none;
     }
 
+    /* ---------- profile page ---------- */
+    .profile-head {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin: 34px 0 30px;
+      flex-wrap: wrap;
+    }
+
+    .section-label {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+
     @media(max-width:760px) {
       .hero h1 {
         font-size: 40px;
@@ -1191,6 +1224,7 @@
 
     /* ========================= state ========================= */
     let currentUser = null;
+    let currentProfile = null; // loaded from artists/{uid}
     let releaseDraft = {
       artwork: null, title: "", version: "", labelName: "Mr. Lyricist",
       releaseDate: "", originalDate: "", pLine: "", cLine: "", priceBand: "Standard", textLang: "",
@@ -1224,10 +1258,12 @@
       <a href="#dashboard" class="${route === 'dashboard' ? 'active' : ''}">Dashboard</a>
       <a href="#releases" class="${route === 'releases' ? 'active' : ''}">All Releases</a>
       <a href="#wizard" class="${route === 'wizard' ? 'active' : ''}">Add Release</a>
+      <a href="#profile" class="${route === 'profile' ? 'active' : ''}">Profile</a>
     `;
+        const photo = currentProfile?.photoUrl;
         navRight.innerHTML = `
       <button class="btn small ghost" onclick="signOutUser()">Sign Out</button>
-      <div class="avatar">${(currentUser.email || 'A')[0].toUpperCase()}</div>
+      <div class="avatar" onclick="navigate('profile')" title="My Profile">${photo ? `<img src="${photo}">` : (currentUser.email || 'A')[0].toUpperCase()}</div>
     `;
       } else {
         navLinks.innerHTML = `
@@ -1241,7 +1277,7 @@
     function render() {
       renderNav();
       const route = (location.hash || '#home').slice(1);
-      const protectedRoutes = ['dashboard', 'releases', 'wizard'];
+      const protectedRoutes = ['dashboard', 'releases', 'wizard', 'profile'];
       if (protectedRoutes.includes(route) && !currentUser) {
         navigate('login'); return;
       }
@@ -1252,6 +1288,7 @@
       else if (route === 'dashboard') { app.innerHTML = renderDashboardShell(); loadDashboardStats(); }
       else if (route === 'releases') { app.innerHTML = renderReleasesShell(); loadReleases(); }
       else if (route === 'wizard') { wizardStep = 1; app.innerHTML = renderWizard(); bindWizardStep1(); }
+      else if (route === 'profile') { app.innerHTML = `<div class="empty-state">Loading your profile…</div>`; loadAndRenderProfile(); }
       else app.innerHTML = renderHome();
       window.scrollTo(0, 0);
     }
@@ -1363,14 +1400,21 @@
     }
     function signOutUser() { auth.signOut().then(() => navigate('home')); }
 
-    auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(async user => {
       currentUser = user;
+      currentProfile = null;
+      if (user) {
+        try {
+          const doc = await db.collection('artists').doc(user.uid).get();
+          currentProfile = doc.exists ? doc.data() : null;
+        } catch (e) { /* ignore, will retry on profile page */ }
+      }
       render();
     });
 
     /* ========================= DASHBOARD ========================= */
     function renderDashboardShell() {
-      const name = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : 'Artist';
+      const name = currentProfile?.name || (currentUser ? currentUser.email.split('@')[0] : 'Artist');
       return `
   <div class="welcome-banner">
     <div>
@@ -1380,6 +1424,7 @@
       <div class="ctas">
         <a href="#wizard" class="btn primary">＋ Add Release</a>
         <a href="#releases" class="btn ghost">View All Releases</a>
+        <a href="#profile" class="btn ghost">Edit Profile</a>
       </div>
     </div>
   </div>
@@ -1466,6 +1511,133 @@
       </div>
     </div>
   `).join('');
+    }
+
+    /* ========================= PROFILE ========================= */
+    let profileDraft = null;
+    function blankProfile() {
+      return {
+        name: '', email: currentUser?.email || '', phone: '', photoUrl: null,
+        bio: '',
+        bankHolderName: '', bankAccountNumber: '', bankIfsc: '', bankName: '', upiId: ''
+      };
+    }
+    async function loadAndRenderProfile() {
+      if (!currentUser) return;
+      try {
+        const doc = await db.collection('artists').doc(currentUser.uid).get();
+        currentProfile = doc.exists ? doc.data() : null;
+      } catch (e) {
+        toast('Could not load profile: ' + e.message);
+      }
+      profileDraft = Object.assign(blankProfile(), currentProfile || {});
+      document.getElementById('app').innerHTML = renderProfile();
+      bindProfileEvents();
+    }
+    function renderProfile() {
+      const p = profileDraft;
+      return `
+  <div class="page-title">My Profile</div>
+
+  <div class="panel">
+    <div class="section-label">Profile Photo</div>
+    <div class="profile-head">
+      <div class="upload-box round" id="photoBox" onclick="document.getElementById('photoInput').click()">
+        ${p.photoUrl ? `<img src="${p.photoUrl}">` : 'Click to<br>upload photo'}
+      </div>
+      <input type="file" id="photoInput" accept="image/*" style="display:none">
+      <div>
+        <p style="color:var(--ink-dim);font-size:13px;max-width:340px;">Square image recommended (min 400×400). This photo appears next to your name across your dashboard.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Personal Details</div>
+    <div class="grid-2">
+      <div class="field"><label>Artist / Stage Name <span class="req">*</span></label><input id="pName" value="${p.name || ''}"></div>
+      <div class="field"><label>Email</label><input id="pEmail" value="${p.email || ''}" disabled style="opacity:.6"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Phone</label><input id="pPhone" value="${p.phone || ''}" placeholder="+91 9XXXXXXXXX"></div>
+      <div class="field"><label>Short Bio (Optional)</label><input id="pBio" value="${p.bio || ''}" placeholder="A line about you as an artist"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Payout Details</div>
+    <ul class="guideline-list" style="margin-bottom:18px;">
+      <li>These details are used to pay out your 70% royalty share.</li>
+      <li>Either bank details or a UPI ID is enough — fill whichever you prefer.</li>
+    </ul>
+    <div class="grid-2">
+      <div class="field"><label>Account Holder Name</label><input id="pBankHolder" value="${p.bankHolderName || ''}"></div>
+      <div class="field"><label>UPI ID</label><input id="pUpi" value="${p.upiId || ''}" placeholder="yourname@upi"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Bank Account Number</label><input id="pBankAcc" value="${p.bankAccountNumber || ''}"></div>
+      <div class="field"><label>IFSC Code</label><input id="pBankIfsc" value="${p.bankIfsc || ''}"></div>
+    </div>
+    <div class="field"><label>Bank Name</label><input id="pBankName" value="${p.bankName || ''}"></div>
+  </div>
+
+  <div class="wizard-actions">
+    <span></span>
+    <button class="btn primary" id="saveProfileBtn" onclick="saveProfile()">Save Profile</button>
+  </div>
+  `;
+    }
+    function bindProfileEvents() {
+      document.getElementById('photoInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        const box = document.getElementById('photoBox');
+        box.innerHTML = 'Uploading…';
+        try {
+          const res = await cloudinaryUpload(file, 'image');
+          profileDraft.photoUrl = res.secure_url;
+          box.innerHTML = `<img src="${res.secure_url}">`;
+        } catch (err) {
+          toast('Photo upload failed');
+          box.innerHTML = profileDraft.photoUrl ? `<img src="${profileDraft.photoUrl}">` : 'Click to<br>upload photo';
+        }
+      });
+    }
+    async function saveProfile() {
+      if (!currentUser) return;
+      profileDraft.name = document.getElementById('pName').value.trim();
+      profileDraft.phone = document.getElementById('pPhone').value.trim();
+      profileDraft.bio = document.getElementById('pBio').value.trim();
+      profileDraft.bankHolderName = document.getElementById('pBankHolder').value.trim();
+      profileDraft.upiId = document.getElementById('pUpi').value.trim();
+      profileDraft.bankAccountNumber = document.getElementById('pBankAcc').value.trim();
+      profileDraft.bankIfsc = document.getElementById('pBankIfsc').value.trim();
+      profileDraft.bankName = document.getElementById('pBankName').value.trim();
+
+      if (!profileDraft.name) { toast('Please enter your artist name'); return; }
+
+      const btn = document.getElementById('saveProfileBtn');
+      btn.disabled = true; btn.textContent = 'Saving…';
+      try {
+        await db.collection('artists').doc(currentUser.uid).set({
+          name: profileDraft.name,
+          phone: profileDraft.phone,
+          bio: profileDraft.bio,
+          photoUrl: profileDraft.photoUrl || null,
+          bankHolderName: profileDraft.bankHolderName,
+          bankAccountNumber: profileDraft.bankAccountNumber,
+          bankIfsc: profileDraft.bankIfsc,
+          bankName: profileDraft.bankName,
+          upiId: profileDraft.upiId,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        currentProfile = Object.assign({}, currentProfile, profileDraft);
+        toast('Profile saved ✅');
+        renderNav();
+      } catch (err) {
+        toast('Save failed: ' + err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Save Profile';
+      }
     }
 
     /* ========================= WIZARD ========================= */
