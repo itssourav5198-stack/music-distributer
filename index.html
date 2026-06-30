@@ -212,6 +212,26 @@
       color: var(--gold-soft);
     }
 
+    .btn.ok {
+      border-color: var(--ok);
+      color: var(--ok);
+    }
+
+    .btn.ok:hover {
+      background: var(--ok);
+      color: #0a0710;
+    }
+
+    .btn.danger {
+      border-color: var(--reject);
+      color: var(--reject);
+    }
+
+    .btn.danger:hover {
+      background: var(--reject);
+      color: #fff;
+    }
+
     #app {
       max-width: 1180px;
       margin: 0 auto;
@@ -1140,6 +1160,144 @@
       margin-bottom: 18px;
     }
 
+    /* ---------- admin panel ---------- */
+    .admin-badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(201, 160, 90, 0.18);
+      color: var(--gold-soft);
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    .admin-table-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    table.admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    table.admin-table th {
+      text-align: left;
+      padding: 14px 16px;
+      background: var(--bg-elevated);
+      color: var(--ink-dim);
+      font-size: 11.5px;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--line);
+    }
+
+    table.admin-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+    }
+
+    table.admin-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    table.admin-table .thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: var(--bg-elevated);
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 3, 9, 0.78);
+      backdrop-filter: blur(3px);
+      z-index: 300;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 50px 20px;
+      overflow-y: auto;
+    }
+
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      max-width: 720px;
+      width: 100%;
+      padding: 34px;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      font-size: 22px;
+      color: var(--ink-dim);
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      color: var(--gold-soft);
+    }
+
+    .modal-box h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      margin-bottom: 4px;
+    }
+
+    .modal-sub {
+      color: var(--ink-dim);
+      font-size: 12.5px;
+      margin-bottom: 22px;
+    }
+
+    .kv-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 24px;
+      margin-bottom: 18px;
+      font-size: 13px;
+    }
+
+    .kv-grid .k {
+      color: var(--ink-dim);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+      margin-bottom: 3px;
+    }
+
+    .modal-divider {
+      border-top: 1px solid var(--line);
+      margin: 20px 0;
+    }
+
+    .access-denied {
+      text-align: center;
+      padding: 100px 20px;
+      color: var(--ink-dim);
+    }
+
     @media(max-width:760px) {
       .hero h1 {
         font-size: 40px;
@@ -1147,7 +1305,8 @@
 
       .feature-grid,
       .grid-2,
-      .stat-cards {
+      .stat-cards,
+      .kv-grid {
         grid-template-columns: 1fr;
       }
 
@@ -1163,6 +1322,10 @@
 
       .welcome-banner {
         padding: 28px;
+      }
+
+      .admin-table-wrap {
+        overflow-x: auto;
       }
     }
   </style>
@@ -1222,6 +1385,18 @@
       });
     }
 
+    /* =========================================================
+       ADMIN ACCESS — only these emails can open the #admin route.
+       Add/remove emails here as needed.
+    ========================================================= */
+    const ADMIN_EMAILS = [
+      "sohimaproduction@gmail.com",
+      "sohima0309@gmail.com"
+    ];
+    function isAdmin(user) {
+      return !!user && ADMIN_EMAILS.includes((user.email || '').toLowerCase());
+    }
+
     /* ========================= state ========================= */
     let currentUser = null;
     let currentProfile = null; // loaded from artists/{uid}
@@ -1259,6 +1434,7 @@
       <a href="#releases" class="${route === 'releases' ? 'active' : ''}">All Releases</a>
       <a href="#wizard" class="${route === 'wizard' ? 'active' : ''}">Add Release</a>
       <a href="#profile" class="${route === 'profile' ? 'active' : ''}">Profile</a>
+      ${isAdmin(currentUser) ? `<a href="#admin" class="${route === 'admin' ? 'active' : ''}">Admin</a>` : ''}
     `;
         const photo = currentProfile?.photoUrl;
         navRight.innerHTML = `
@@ -1277,7 +1453,7 @@
     function render() {
       renderNav();
       const route = (location.hash || '#home').slice(1);
-      const protectedRoutes = ['dashboard', 'releases', 'wizard', 'profile'];
+      const protectedRoutes = ['dashboard', 'releases', 'wizard', 'profile', 'admin'];
       if (protectedRoutes.includes(route) && !currentUser) {
         navigate('login'); return;
       }
@@ -1289,6 +1465,14 @@
       else if (route === 'releases') { app.innerHTML = renderReleasesShell(); loadReleases(); }
       else if (route === 'wizard') { wizardStep = 1; app.innerHTML = renderWizard(); bindWizardStep1(); }
       else if (route === 'profile') { app.innerHTML = `<div class="empty-state">Loading your profile…</div>`; loadAndRenderProfile(); }
+      else if (route === 'admin') {
+        if (!isAdmin(currentUser)) {
+          app.innerHTML = `<div class="access-denied"><div class="icon" style="font-size:40px;margin-bottom:14px;">🔒</div>Access denied. This area is restricted to label admins.</div>`;
+        } else {
+          app.innerHTML = renderAdminShell();
+          loadAdminReleases();
+        }
+      }
       else app.innerHTML = renderHome();
       window.scrollTo(0, 0);
     }
@@ -1419,12 +1603,13 @@
   <div class="welcome-banner">
     <div>
       <span class="eyebrow">Hello, Welcome Back</span>
-      <h2>${name}'s Dashboard</h2>
+      <h2>${name}'s Dashboard${isAdmin(currentUser) ? '<span class="admin-badge">Admin</span>' : ''}</h2>
       <p>Submit your music for distribution in a few simple steps — artwork, tracks, and a signed rights agreement.</p>
       <div class="ctas">
         <a href="#wizard" class="btn primary">＋ Add Release</a>
         <a href="#releases" class="btn ghost">View All Releases</a>
         <a href="#profile" class="btn ghost">Edit Profile</a>
+        ${isAdmin(currentUser) ? `<a href="#admin" class="btn ghost">Admin Panel</a>` : ''}
       </div>
     </div>
   </div>
@@ -1638,6 +1823,217 @@
       } finally {
         btn.disabled = false; btn.textContent = 'Save Profile';
       }
+    }
+
+    /* ========================= ADMIN PANEL ========================= */
+    let __adminReleases = [];
+    let __adminArtists = {}; // uid -> artist doc
+
+    function renderAdminShell() {
+      return `
+  <div class="page-title">Admin Panel <span class="admin-badge">Restricted</span></div>
+
+  <div class="stat-cards" id="adminStatCards">
+    <div class="stat-card pend"><div class="lbl">Pending Review</div><div class="val">–</div></div>
+    <div class="stat-card ok"><div class="lbl">Approved</div><div class="val">–</div></div>
+    <div class="stat-card"><div class="lbl">Rejected</div><div class="val">–</div></div>
+    <div class="stat-card gold"><div class="lbl">Total Submissions</div><div class="val">–</div></div>
+  </div>
+
+  <div class="releases-toolbar">
+    <input type="text" id="adminSearch" placeholder="Search song or artist...">
+    <select id="adminFilterStatus">
+      <option value="">All Statuses</option>
+      <option value="pending">Pending</option>
+      <option value="approved">Approved</option>
+      <option value="rejected">Rejected</option>
+    </select>
+  </div>
+
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Release</th>
+          <th>Artist</th>
+          <th>Tracks</th>
+          <th>Submitted</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="adminTableBody">
+        <tr><td colspan="7" style="text-align:center;color:var(--ink-dim);padding:40px;">Loading submissions…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="adminModalRoot"></div>
+  `;
+    }
+
+    async function loadAdminReleases() {
+      try {
+        const [releasesSnap, artistsSnap] = await Promise.all([
+          db.collection('releases').orderBy('createdAt', 'desc').get(),
+          db.collection('artists').get()
+        ]);
+        __adminArtists = {};
+        artistsSnap.forEach(doc => __adminArtists[doc.id] = doc.data());
+        __adminReleases = [];
+        releasesSnap.forEach(doc => __adminReleases.push({ id: doc.id, ...doc.data() }));
+        paintAdminStats();
+        paintAdminTable();
+        document.getElementById('adminSearch').addEventListener('input', paintAdminTable);
+        document.getElementById('adminFilterStatus').addEventListener('change', paintAdminTable);
+      } catch (err) {
+        toast('Could not load submissions: ' + err.message);
+        const tbody = document.getElementById('adminTableBody');
+        if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--ink-dim);padding:40px;">Failed to load. Check Firestore rules allow admin read access.</td></tr>`;
+      }
+    }
+
+    function paintAdminStats() {
+      let pending = 0, approved = 0, rejected = 0;
+      __adminReleases.forEach(r => {
+        const s = r.status || 'pending';
+        if (s === 'approved') approved++; else if (s === 'rejected') rejected++; else pending++;
+      });
+      const cards = document.getElementById('adminStatCards');
+      if (!cards) return;
+      cards.innerHTML = `
+    <div class="stat-card pend"><div class="lbl">Pending Review</div><div class="val">${pending}</div></div>
+    <div class="stat-card ok"><div class="lbl">Approved</div><div class="val">${approved}</div></div>
+    <div class="stat-card"><div class="lbl">Rejected</div><div class="val">${rejected}</div></div>
+    <div class="stat-card gold"><div class="lbl">Total Submissions</div><div class="val">${__adminReleases.length}</div></div>
+  `;
+    }
+
+    function artistNameFor(r) {
+      const a = __adminArtists[r.uid];
+      return a?.name || r.tracks?.[0]?.mainArtist || '—';
+    }
+
+    function paintAdminTable() {
+      const q = (document.getElementById('adminSearch')?.value || '').toLowerCase();
+      const status = document.getElementById('adminFilterStatus')?.value || '';
+      const tbody = document.getElementById('adminTableBody');
+      let list = __adminReleases.filter(r => {
+        const name = artistNameFor(r).toLowerCase();
+        const matchQ = !q || (r.title || '').toLowerCase().includes(q) || name.includes(q);
+        const matchS = !status || (r.status || 'pending') === status;
+        return matchQ && matchS;
+      });
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--ink-dim);padding:40px;">No submissions match.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = list.map(r => `
+    <tr>
+      <td>${r.artworkUrl ? `<img class="thumb" src="${r.artworkUrl}">` : `<div class="thumb"></div>`}</td>
+      <td>${r.title || 'Untitled'}${r.version ? ` <span style="color:var(--ink-dim)">(${r.version})</span>` : ''}</td>
+      <td>${artistNameFor(r)}</td>
+      <td>${(r.tracks || []).length}</td>
+      <td>${r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
+      <td><span class="status-chip ${r.status || 'pending'}">${r.status || 'pending'}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="btn ghost small" onclick="openAdminModal('${r.id}')">View</button>
+          ${r.status !== 'approved' ? `<button class="btn ok small" onclick="setReleaseStatus('${r.id}','approved')">Approve</button>` : ''}
+          ${r.status !== 'rejected' ? `<button class="btn danger small" onclick="setReleaseStatus('${r.id}','rejected')">Reject</button>` : ''}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+    }
+
+    async function setReleaseStatus(id, status) {
+      try {
+        await db.collection('releases').doc(id).update({
+          status,
+          reviewedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          reviewedBy: currentUser.email
+        });
+        const r = __adminReleases.find(x => x.id === id);
+        if (r) r.status = status;
+        paintAdminStats();
+        paintAdminTable();
+        toast(`Release marked as ${status}`);
+      } catch (err) {
+        toast('Update failed: ' + err.message);
+      }
+    }
+
+    function openAdminModal(id) {
+      const r = __adminReleases.find(x => x.id === id);
+      if (!r) return;
+      const artist = __adminArtists[r.uid] || {};
+      const root = document.getElementById('adminModalRoot');
+      root.innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this) closeAdminModal()">
+      <div class="modal-box">
+        <span class="modal-close" onclick="closeAdminModal()">×</span>
+        <h3>${r.title || 'Untitled Release'}</h3>
+        <div class="modal-sub">Submitted by ${artist.name || '—'} (${artist.email || r.uid}) · Status: <span class="status-chip ${r.status || 'pending'}">${r.status || 'pending'}</span></div>
+
+        <div class="kv-grid">
+          <div><div class="k">Release Date</div>${r.releaseDate || '—'}</div>
+          <div><div class="k">Price Band</div>${r.priceBand || '—'}</div>
+          <div><div class="k">℗ Line</div>${r.pLine || '—'}</div>
+          <div><div class="k">© Line</div>${r.cLine || '—'}</div>
+          <div><div class="k">Text Language</div>${r.textLang || '—'}</div>
+          <div><div class="k">Label</div>${r.labelName || '—'}</div>
+        </div>
+
+        <div class="modal-divider"></div>
+        <div class="section-label">Payout Details</div>
+        <div class="kv-grid">
+          <div><div class="k">Account Holder</div>${artist.bankHolderName || '—'}</div>
+          <div><div class="k">UPI ID</div>${artist.upiId || '—'}</div>
+          <div><div class="k">Bank Account</div>${artist.bankAccountNumber || '—'}</div>
+          <div><div class="k">IFSC</div>${artist.bankIfsc || '—'}</div>
+          <div><div class="k">Bank Name</div>${artist.bankName || '—'}</div>
+          <div><div class="k">Phone</div>${artist.phone || '—'}</div>
+        </div>
+
+        <div class="modal-divider"></div>
+        <div class="section-label">Tracks</div>
+        ${(r.tracks || []).map((t, i) => `
+          <div style="margin-bottom:14px;padding:14px;border:1px solid var(--line);border-radius:9px;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:17px;margin-bottom:6px;">${String(i + 1).padStart(2, '0')} — ${t.title || 'untitled'}</div>
+            <div class="kv-grid">
+              <div><div class="k">Main Artist</div>${t.mainArtist || '—'}</div>
+              <div><div class="k">Featuring</div>${t.feat || '—'}</div>
+              <div><div class="k">Lyricist</div>${t.lyricist || '—'}</div>
+              <div><div class="k">Composer</div>${t.composer || '—'}</div>
+              <div><div class="k">Genre</div>${t.genre || '—'} ${t.subGenre ? '/ ' + t.subGenre : ''}</div>
+              <div><div class="k">Explicit</div>${t.explicit || '—'}</div>
+            </div>
+            ${t.url ? `<audio controls style="width:100%;margin-top:8px;" src="${t.url}"></audio>` : '<div style="color:var(--ink-dim);font-size:12.5px;">No audio uploaded</div>'}
+          </div>
+        `).join('')}
+
+        <div class="modal-divider"></div>
+        <div class="section-label">Signed Agreement</div>
+        <div class="kv-grid">
+          <div><div class="k">Signature Type</div>${r.agreement?.sigType || '—'}</div>
+          <div><div class="k">Signed At</div>${r.agreement?.signedAt ? new Date(r.agreement.signedAt).toLocaleString('en-IN') : '—'}</div>
+        </div>
+        ${r.agreement?.sigType === 'typed'
+          ? `<div class="sig-typed-preview" style="font-size:26px;">${r.agreement?.typedName || ''}</div>`
+          : (r.agreement?.drawnSignature ? `<img src="${r.agreement.drawnSignature}" style="max-width:280px;background:var(--bg-elevated);border-radius:8px;border:1px solid var(--line);">` : '')}
+
+        <div class="row-actions" style="margin-top:24px;justify-content:flex-end;">
+          <button class="btn danger" onclick="setReleaseStatus('${r.id}','rejected');closeAdminModal()">Reject</button>
+          <button class="btn ok" onclick="setReleaseStatus('${r.id}','approved');closeAdminModal()">Approve</button>
+        </div>
+      </div>
+    </div>
+  `;
+    }
+    function closeAdminModal() {
+      document.getElementById('adminModalRoot').innerHTML = '';
     }
 
     /* ========================= WIZARD ========================= */
