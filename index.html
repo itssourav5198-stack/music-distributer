@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mr. Lyricist Distributor — Artist Portal</title>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0D0B0E;
+    --panel: #141017;
+    --panel-alt: #171419;
+    --sidebar: #100D12;
+    --border: #2A2630;
+    --border-light: #3A3640;
+    --text: #EDE8DF;
+    --text-muted: #8A8590;
+    --text-dim: #6B6770;
+    --gold: #C9A24B;
+    --gold-soft: rgba(201,162,75,0.15);
+    --crimson: #6B1426;
+    --crimson-soft: rgba(107,20,38,0.15);
+    --error: #D85A30;
+    --success: #5DCAA5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, .serif { font-family: 'Cormorant Garamond', serif; }
+  button { font-family: 'Jost', sans-serif; cursor: pointer; }
+  input, select, textarea { font-family: 'Jost', sans-serif; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--panel); }
+  ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+
+  .hidden { display: none !important; }
+
+  .app-shell { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 220px; background: var(--sidebar); border-right: 1px solid var(--border);
+    padding: 24px 16px; flex-shrink: 0; display: flex; flex-direction: column;
+  }
+  .main-content { flex: 1; padding: 28px 36px; overflow-y: auto; max-height: 100vh; }
+
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-mark {
+    width: 36px; height: 36px; border: 1px solid var(--gold); border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--gold); flex-shrink: 0;
+  }
+  .logo-text-main { font-family: 'Cormorant Garamond', serif; font-size: 17px; color: var(--text); letter-spacing: 0.5px; }
+  .logo-text-sub { font-size: 10px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; }
+
+  .nav-item {
+    padding: 10px 12px; border-radius: 4px; font-size: 13px; cursor: pointer;
+    color: #C9BFC4; margin-bottom: 4px; transition: all 0.15s ease;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.04); }
+  .nav-item.active { color: #171419; background: var(--gold); font-weight: 500; }
+  .nav-item.signout { color: var(--text-dim); margin-top: 20px; }
+
+  .auth-wrap {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 32px;
+  }
+  .auth-card {
+    width: 100%; max-width: 380px; border: 1px solid var(--border); border-radius: 8px;
+    padding: 32px; background: var(--panel);
+  }
+  .auth-card.wide { max-width: 480px; }
+  .auth-title { font-size: 26px; margin-bottom: 4px; }
+  .auth-sub { font-size: 12.5px; color: var(--text-muted); margin-bottom: 24px; }
+
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block; font-size: 11.5px; color: #9C97A0; margin-bottom: 6px;
+    letter-spacing: 0.4px; text-transform: uppercase;
+  }
+  .field label .req { color: var(--gold); }
+  .field-hint { font-size: 11px; color: #5F5B62; margin-top: 4px; }
+
+  .input, select.input {
+    width: 100%; background: var(--panel-alt); border: 1px solid var(--border-light);
+    border-radius: 4px; padding: 11px 13px; color: var(--text); font-size: 13.5px;
+    outline: none; transition: border-color 0.15s ease;
+  }
+  .input:focus { border-color: var(--gold); }
+  textarea.input { resize: vertical; font-family: 'Jost', sans-serif; }
+  select.input option { background: var(--panel-alt); color: var(--text); }
+
+  .btn {
+    border: none; border-radius: 4px; padding: 12px 0; font-weight: 500; font-size: 13.5px;
+    width: 100%; transition: opacity 0.15s ease;
+  }
+  .btn:hover { opacity: 0.92; }
+  .btn-gold { background: var(--gold); color: #171419; }
+  .btn-gold:disabled { background: #4A4035; color: #8A8590; cursor: not-allowed; opacity: 1; }
+  .btn-outline {
+    background: transparent; color: var(--text-muted); border: 1px solid var(--border-light);
+  }
+  .btn-inline { width: auto; padding: 11px 24px; }
+  .btn-row { display: flex; gap: 10px; }
+
+  .auth-links {
+    display: flex; justify-content: space-between; margin-top: 16px; font-size: 12px;
+  }
+  .link { color: var(--gold); cursor: pointer; }
+  .link-muted { color: var(--text-dim); cursor: pointer; }
+
+  .section-label {
+    font-size: 11px; color: var(--gold); letter-spacing: 1px; text-transform: uppercase;
+    margin: 18px 0 10px;
+  }
+  .section-label:first-of-type { margin-top: 0; }
+
+  .error-text { color: var(--error); font-size: 12px; margin-top: -8px; margin-bottom: 14px; }
+  .info-banner {
+    background: var(--crimson-soft); border: 1px solid rgba(107,20,38,0.4); border-radius: 4px;
+    padding: 10px 14px; font-size: 12.5px; color: #C9BFC4; margin-bottom: 16px;
+  }
+
+  .toast {
+    position: fixed; top: 20px; right: 20px; background: #1A1620; border: 1px solid var(--gold);
+    color: var(--text); padding: 12px 18px; border-radius: 4px; font-size: 13px; z-index: 999;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+  }
+
+  .sub-card {
+    border: 1px solid var(--border); border-radius: 6px; padding: 18px 20px;
+    background: var(--panel); margin-bottom: 16px;
+  }
+  .sub-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .sub-left { display: flex; gap: 12px; }
+  .sub-cover {
+    width: 44px; height: 44px; border-radius: 4px; background: #221F26; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .sub-title { font-family: 'Cormorant Garamond', serif; font-size: 17px; color: var(--text); }
+  .sub-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+  .sub-id { font-size: 10.5px; font-family: monospace; color: var(--text-dim); letter-spacing: 0.5px; }
+
+  .reel { display: flex; align-items: center; margin-top: 14px; }
+  .reel-step { display: flex; flex-direction: column; align-items: center; min-width: 64px; }
+  .reel-dot {
+    width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--border-light);
+    transition: all 0.3s ease;
+  }
+  .reel-dot.active { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 6px rgba(201,162,75,0.6); }
+  .reel-label { font-size: 10px; margin-top: 6px; color: var(--text-dim); text-align: center; letter-spacing: 0.3px; }
+  .reel-label.active { color: var(--text); }
+  .reel-line { flex: 1; height: 1.5px; background: var(--border-light); margin-bottom: 18px; }
+  .reel-line.active { background: var(--gold); }
+  .admin-note {
+    margin-top: 14px; background: var(--crimson-soft); border: 1px solid rgba(107,20,38,0.4);
+    border-radius: 4px; padding: 9px 13px; font-size: 12.5px; color: #C9BFC4;
+  }
+  .admin-note b { color: var(--gold); font-weight: 500; }
+
+  .chip-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    padding: 6px 12px; border-radius: 14px; font-size: 12px; cursor: pointer;
+    border: 1px solid var(--border-light); color: #9C97A0; transition: all 0.15s ease;
+  }
+  .chip.active { border-color: var(--gold); background: var(--gold-soft); color: var(--gold); }
+
+  .multi-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .multi-row .input { flex: 1; }
+  .multi-remove {
+    background: transparent; border: 1px solid var(--border-light); border-radius: 4px;
+    color: var(--text-muted); width: 38px; font-size: 14px;
+  }
+  .add-more { font-size: 12px; color: var(--gold); cursor: pointer; display: inline-block; }
+
+  .filedrop-label {
+    display: flex; align-items: center; gap: 10px; border: 1px dashed var(--border-light);
+    border-radius: 4px; padding: 14px; cursor: pointer; transition: all 0.15s ease;
+  }
+  .filedrop-label.filled { background: rgba(201,162,75,0.06); }
+  .filedrop-label.error { border-color: var(--error); }
+  .filedrop-icon {
+    width: 32px; height: 32px; border-radius: 4px; background: #221F26;
+    display: flex; align-items: center; justify-content: center; color: var(--gold);
+    font-size: 14px; flex-shrink: 0;
+  }
+  .filedrop-name { color: var(--text-muted); font-size: 13px; }
+  .filedrop-name.set { color: var(--text); }
+  .filedrop-hint { color: #5F5B62; font-size: 11px; }
+
+  .stepper { display: flex; gap: 6px; margin: 16px 0 24px; }
+  .stepper-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; }
+  .stepper-bar.active { background: var(--gold); }
+
+  .agreement-box {
+    border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; background: var(--panel-alt);
+    max-height: 240px; overflow-y: auto; font-size: 12px; line-height: 1.7; color: #B8B2BC;
+    white-space: pre-line; margin-bottom: 16px;
+  }
+  .agree-checkbox-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 18px; cursor: pointer; }
+  .agree-checkbox {
+    width: 17px; height: 17px; border-radius: 3px; border: 1.5px solid var(--border-light);
+    flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: #171419; transition: all 0.15s ease;
+  }
+  .agree-checkbox.checked { background: var(--gold); border-color: var(--gold); }
+  .agree-checkbox-text { font-size: 12.5px; color: #C9BFC4; }
+  .signature-input { font-family: 'Cormorant Garamond', serif; font-size: 20px; border-color: var(--gold); }
+
+  .upload-progress {
+    height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 8px;
+  }
+  .upload-progress-bar { height: 100%; background: var(--gold); transition: width 0.2s ease; }
+
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 13px;
+  }
+
+  .admin-row {
+    border: 1px solid var(--border); border-radius: 6px; padding: 16px 20px; background: var(--panel);
+    display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 14px;
+  }
+
+  .loading-screen {
+    display: flex; align-items: center; justify-content: center; min-height: 100vh;
+    color: var(--text-muted); font-size: 13px;
+  }
+
+  @media (max-width: 760px) {
+    .app-shell { flex-direction: column; }
+    .sidebar { width: 100%; flex-direction: row; align-items: center; padding: 14px 16px; overflow-x: auto; }
+    .sidebar .logo { flex-shrink: 0; }
+    .sidebar > div:nth-child(2) { display: flex; gap: 6px; margin-left: 20px; }
+    .nav-item.signout { margin-top: 0; margin-left: 10px; }
+    .main-content { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="root"><div class="loading-screen">Loading…</div></div>
+
+<!-- Step 1: Load React & Babel FIRST (synchronous CDN, no module) -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- Step 2: Config & constants (plain script, runs sync) -->
+<script>
+const CLOUDINARY_CLOUD_NAME = "du0qzod8p";
+const CLOUDINARY_UPLOAD_PRESET = "mr-lyricist";
+const ADMIN_EMAILS = ["its.sourav5198@gmail.com"];
+
+const GENRES = [
+  "Pop","Rock","Hip-Hop","Rap","R&B","EDM","House","Techno","Trance",
+  "Dubstep","Lo-fi","Jazz","Blues","Classical","Folk","Country","Indie",
+  "Alternative","Soul","Funk","Reggae","Metal","Punk","Gospel","Ambient",
+  "Instrumental","Acoustic","Cinematic","Orchestral","Experimental",
+];
+
+const MOODS = [
+  "Romantic","Sad","Happy","Chill","Emotional","Party","Motivational",
+  "Inspirational","Angry","Calm","Energetic","Heartbreak","Love",
+  "Nostalgic","Spiritual","Dark","Dreamy","Travel","Workout","Focus",
+];
+
+const STATUS_STEPS = ["Submitted","Under Review","Approved","Live"];
+
+const AGREEMENT_TEXT = `This Distribution Agreement ("Agreement") is entered into between the Artist submitting the work ("Artist") and Mr. Lyricist Distributor, a division of Mr. Lyricist ("Label").
+
+1. Grant of Rights. The Artist grants the Label a non-exclusive license to distribute, promote, and deliver the submitted track ("Work") to digital streaming platforms and stores on the Artist's behalf.
+
+2. Ownership. The Artist retains full ownership of the underlying composition and master recording. This Agreement does not transfer copyright ownership to the Label.
+
+3. Royalties. Net royalties collected from platforms will be shared as per the payout terms communicated separately to the Artist, paid out to the bank/UPI details provided at registration.
+
+4. Credits. The Artist confirms that all credited contributors (lyricist, composer, singer) listed in this submission have consented to be credited and that the Artist holds the necessary rights to distribute the Work.
+
+5. Content Standards. The Label reserves the right to reject or take down any submission that infringes third-party copyright, contains unlicensed samples, or violates platform content policies.
+
+6. Term and Termination. This Agreement remains in effect until either party requests takedown of the Work, subject to platform processing timelines.
+
+7. Placeholder Notice. This is a template agreement provided for structural purposes. The Label will replace this text with its finalized legal terms before production use.`;
+</script>
+
+<!-- Step 3: Firebase as ES Module — fires event when ready -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    onAuthStateChanged, signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getFirestore, collection, addDoc, doc, setDoc, getDoc, getDocs,
+    query, where, orderBy, onSnapshot, updateDoc, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVKR41F6h30Snug0aTTSKHi0dKCKDBVoc",
+    authDomain: "music-distribution-e2392.firebaseapp.com",
+    projectId: "music-distribution-e2392",
+    storageBucket: "music-distribution-e2392.firebasestorage.app",
+    messagingSenderId: "919953303747",
+    appId: "1:919953303747:web:24afbc20521654cb489a76"
+  };
+
+  const app = initializeApp(firebaseConfig);
+
+  window.fb = {
+    auth: getAuth(app),
+    db: getFirestore(app),
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut,
+    collection, addDoc, doc, setDoc, getDoc, getDocs,
+    query, where, orderBy, onSnapshot, updateDoc, serverTimestamp,
+  };
+
+  // ✅ Tell the page Firebase is ready — React will now mount
+  document.dispatchEvent(new CustomEvent("firebase-ready"));
+</script>
+
+<!-- Step 4: React App — waits for firebase-ready event before mounting -->
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+const emptyForm = {
+  title: "", genre: "", moods: [], language: "", releaseDate: "",
+  lyricists: [""], composers: [""], singers: [""], lyrics: "",
+  audioFile: null, audioUrl: "", coverFile: null, coverUrl: "", coverDimensionsOk: null,
+  agreed: false, signature: "",
+};
+
+const emptySignup = {
+  name: "", email: "", phone: "", password: "",
+  bankAccount: "", ifsc: "", upi: "",
+  spotify: "", youtube: "", instagram: "",
+};
+
+async function uploadToCloudinary(file, resourceType) {
+  const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+  const res = await fetch(url, { method: "POST", body: formData });
+  if (!res.ok) throw new Error("Cloudinary upload failed");
+  const data = await res.json();
+  return data.secure_url;
+}
+
+function checkImageIs3000(file) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const objUrl = URL.createObjectURL(file);
+    img.onload = () => { resolve(img.width === 3000 && img.height === 3000); URL.revokeObjectURL(objUrl); };
+    img.onerror = () => resolve(false);
+    img.src = objUrl;
+  });
+}
+
+function Logo() {
+  return (
+    <div className="logo">
+      <div className="logo-mark">ML</div>
+      <div>
+        <div className="logo-text-main">Mr. Lyricist</div>
+        <div className="logo-text-sub">Distributor Portal</div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, value, onChange, placeholder, type, required, hint }) {
+  return (
+    <div className="field">
+      <label>{label}{required && <span className="req"> *</span>}</label>
+      <input className="input" type={type || "text"} value={value} placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)} />
+      {hint && <div className="field-hint">{hint}</div>}
+    </div>
+  );
+}
+
+function SelectField({ label, value, onChange, options, placeholder, required }) {
+  return (
+    <div className="field">
+      <label>{label}{required && <span className="req"> *</span>}</label>
+      <select className="input" value={value} onChange={(e) => onChange(e.target.value)}>
+        <option value="" disabled>{placeholder}</option>
+        {options.map((o) => <option key={o} value={o}>{o}</option>)}
+      </select>
+    </div>
+  );
+}
+
+function MoodChips({ selected, onToggle }) {
+  return (
+    <div className="field">
+      <label>Mood <span className="req">*</span><span style={{color:"#5F5B62",textTransform:"none",marginLeft:6}}>(select all that fit)</span></label>
+      <div className="chip-wrap">
+        {MOODS.map((m) => (
+          <div key={m} className={"chip"+(selected.includes(m)?" active":"")} onClick={() => onToggle(m)}>{m}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MultiInputList({ label, values, onChange, max, placeholder }) {
+  const setAt = (i, val) => { const next = [...values]; next[i] = val; onChange(next); };
+  const addRow = () => onChange([...values, ""]);
+  const removeRow = (i) => onChange(values.filter((_, idx) => idx !== i));
+  return (
+    <div className="field">
+      <label>{label} <span className="req">*</span>{max && <span style={{color:"#5F5B62",textTransform:"none",marginLeft:6}}>(max {max})</span>}</label>
+      {values.map((v, i) => (
+        <div className="multi-row" key={i}>
+          <input className="input" type="text" value={v} placeholder={placeholder} onChange={(e) => setAt(i, e.target.value)} />
+          {values.length > 1 && <button className="multi-remove" onClick={() => removeRow(i)}>×</button>}
+        </div>
+      ))}
+      {(!max || values.length < max) && <div className="add-more" onClick={addRow}>+ Add another</div>}
+    </div>
+  );
+}
+
+function FileDropAudio({ value, onChange, uploading, progress }) {
+  return (
+    <div className="field">
+      <label>Audio file <span className="req">*</span></label>
+      <label className={"filedrop-label"+(value?" filled":"")}>
+        <input type="file" accept="audio/*" style={{display:"none"}} onChange={(e) => onChange(e.target.files?.[0])} />
+        <div className="filedrop-icon">⬆</div>
+        <div>
+          <div className={"filedrop-name"+(value?" set":"")}>{value ? value.name : "Choose file to upload"}</div>
+          <div className="filedrop-hint">WAV or high-bitrate MP3 preferred</div>
+        </div>
+      </label>
+      {uploading && <div className="upload-progress"><div className="upload-progress-bar" style={{width:progress+"%"}}></div></div>}
+    </div>
+  );
+}
+
+function CoverFileDrop({ value, dimensionsOk, onChange, checking }) {
+  const handleFile = async (file) => {
+    if (!file) { onChange(null, null); return; }
+    const ok = await checkImageIs3000(file);
+    onChange(ok ? file : null, ok);
+  };
+  return (
+    <div className="field">
+      <label>Cover art <span className="req">*</span></label>
+      <label className={"filedrop-label"+(value?" filled":"")+(dimensionsOk===false?" error":"")}>
+        <input type="file" accept="image/*" style={{display:"none"}} onChange={(e) => handleFile(e.target.files?.[0])} />
+        <div className="filedrop-icon">⬆</div>
+        <div>
+          <div className={"filedrop-name"+(value?" set":"")}>{checking ? "Checking dimensions…" : (value ? value.name : "Choose file to upload")}</div>
+          <div className="filedrop-hint">Must be exactly 3000 × 3000px</div>
+        </div>
+      </label>
+      {dimensionsOk === false && <div className="error-text" style={{marginTop:6}}>That image isn't 3000 × 3000px. Choose a correctly sized file.</div>}
+    </div>
+  );
+}
+
+function FilmReelStatus({ status, comment }) {
+  return (
+    <div>
+      <div className="reel">
+        {STATUS_STEPS.map((step, i) => {
+          const active = i <= status;
+          const isLast = i === STATUS_STEPS.length - 1;
+          return (
+            <React.Fragment key={step}>
+              <div className="reel-step">
+                <div className={"reel-dot"+(active?" active":"")}></div>
+                <span className={"reel-label"+(active?" active":"")}>{step}</span>
+              </div>
+              {!isLast && <div className={"reel-line"+(i < status?" active":"")}></div>}
+            </React.Fragment>
+          );
+        })}
+      </div>
+      {comment && <div className="admin-note"><b>Admin note: </b>{comment}</div>}
+    </div>
+  );
+}
+
+function Toast({ message }) {
+  if (!message) return null;
+  return <div className="toast">{message}</div>;
+}
+
+function App() {
+  const [fbReady, setFbReady] = useState(!!window.fb);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [view, setView] = useState("login");
+  const [toast, setToast] = useState(null);
+  const [authError, setAuthError] = useState("");
+
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [signupForm, setSignupForm] = useState(emptySignup);
+
+  const [submissions, setSubmissions] = useState([]);
+  const [allSubmissions, setAllSubmissions] = useState([]);
+  const [form, setForm] = useState(emptyForm);
+  const [step, setStep] = useState(1);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [audioProgress, setAudioProgress] = useState(0);
+  const [checkingCover, setCheckingCover] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // ✅ Wait for Firebase to be ready before doing anything
+  useEffect(() => {
+    if (window.fb) { setFbReady(true); return; }
+    const handler = () => setFbReady(true);
+    document.addEventListener("firebase-ready", handler);
+    return () => document.removeEventListener("firebase-ready", handler);
+  }, []);
+
+  // ✅ Auth listener — only runs after Firebase is ready
+  useEffect(() => {
+    if (!fbReady) return;
+    const { auth, onAuthStateChanged } = window.fb;
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setAuthChecked(true);
+      if (u) {
+        const admin = ADMIN_EMAILS.includes(u.email);
+        setIsAdmin(admin);
+        setView(admin ? "admin" : "dashboard");
+      } else {
+        setIsAdmin(false);
+        setView("login");
+      }
+    });
+    return () => unsub();
+  }, [fbReady]);
+
+  // ✅ Submissions listener
+  useEffect(() => {
+    if (!user || !fbReady) return;
+    const { db, collection, query, where, orderBy, onSnapshot } = window.fb;
+    if (isAdmin) {
+      const q = query(collection(db, "submissions"), orderBy("createdAt", "desc"));
+      const unsub = onSnapshot(q, (snap) => {
+        setAllSubmissions(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      });
+      return () => unsub();
+    } else {
+      const q = query(collection(db, "submissions"), where("artistUid", "==", user.uid), orderBy("createdAt", "desc"));
+      const unsub = onSnapshot(q, (snap) => {
+        setSubmissions(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      });
+      return () => unsub();
+    }
+  }, [user, isAdmin, fbReady]);
+
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2800); };
+  const update = (key) => (val) => setForm((f) => ({ ...f, [key]: val }));
+
+  const handleLogin = async () => {
+    setAuthError("");
+    const { auth, signInWithEmailAndPassword } = window.fb;
+    try {
+      await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
+    } catch (e) {
+      setAuthError(e.message.replace("Firebase: ", ""));
+    }
+  };
+
+  const handleSignup = async () => {
+    setAuthError("");
+    if (!signupForm.email || !signupForm.password || !signupForm.name) {
+      setAuthError("Please fill in name, email, and password.");
+      return;
+    }
+    const { auth, db, createUserWithEmailAndPassword, doc, setDoc, serverTimestamp } = window.fb;
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, signupForm.email, signupForm.password);
+      await setDoc(doc(db, "artists", cred.user.uid), {
+        name: signupForm.name, email: signupForm.email, phone: signupForm.phone,
+        bankAccount: signupForm.bankAccount, ifsc: signupForm.ifsc, upi: signupForm.upi,
+        spotify: signupForm.spotify, youtube: signupForm.youtube, instagram: signupForm.instagram,
+        createdAt: serverTimestamp(),
+      });
+      setSignupForm(emptySignup);
+      showToast("Account created. Welcome to Mr. Lyricist Distributor.");
+    } catch (e) {
+      setAuthError(e.message.replace("Firebase: ", ""));
+    }
+  };
+
+  const handleSignOut = async () => {
+    const { auth, signOut } = window.fb;
+    await signOut(auth);
+    setView("login");
+  };
+
+  const handleAudioSelect = async (file) => {
+    if (!file) return;
+    setForm((f) => ({ ...f, audioFile: file }));
+    setUploadingAudio(true);
+    setAudioProgress(15);
+    try {
+      const url = await uploadToCloudinary(file, "video");
+      setAudioProgress(100);
+      setForm((f) => ({ ...f, audioUrl: url }));
+    } catch (e) {
+      showToast("Audio upload failed. Check your Cloudinary config.");
+      setForm((f) => ({ ...f, audioFile: null }));
+    } finally {
+      setTimeout(() => setUploadingAudio(false), 400);
+    }
+  };
+
+  const handleCoverSelect = async (file, dimensionsOk) => {
+    if (!file) { setForm((f) => ({ ...f, coverFile: null, coverDimensionsOk: null, coverUrl: "" })); return; }
+    setForm((f) => ({ ...f, coverFile: file, coverDimensionsOk: dimensionsOk }));
+    if (!dimensionsOk) return;
+    setCheckingCover(true);
+    try {
+      const url = await uploadToCloudinary(file, "image");
+      setForm((f) => ({ ...f, coverUrl: url }));
+    } catch (e) {
+      showToast("Cover upload failed. Check your Cloudinary config.");
+    } finally {
+      setCheckingCover(false);
+    }
+  };
+
+  const submitSong = async () => {
+    setSubmitting(true);
+    const { db, collection, addDoc, serverTimestamp } = window.fb;
+    try {
+      await addDoc(collection(db, "submissions"), {
+        artistUid: user.uid, artistEmail: user.email,
+        title: form.title, genre: form.genre, moods: form.moods,
+        language: form.language, releaseDate: form.releaseDate,
+        lyricists: form.lyricists.filter(Boolean),
+        composers: form.composers.filter(Boolean),
+        singers: form.singers.filter(Boolean),
+        lyrics: form.lyrics, audioUrl: form.audioUrl, coverUrl: form.coverUrl,
+        signature: form.signature, agreedAt: serverTimestamp(),
+        status: 0, adminComment: "Just received. Our team will start review shortly.",
+        createdAt: serverTimestamp(),
+      });
+      setForm(emptyForm); setStep(1); setView("dashboard");
+      showToast("Agreement signed. Song submitted for review.");
+    } catch (e) {
+      showToast("Submission failed: " + e.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const advanceStatus = async (sub) => {
+    const { db, doc, updateDoc } = window.fb;
+    const next = Math.min(sub.status + 1, 3);
+    await updateDoc(doc(db, "submissions", sub.id), { status: next });
+  };
+
+  // Show loading until Firebase + Auth both ready
+  if (!fbReady || !authChecked) {
+    return <div className="loading-screen">Loading…</div>;
+  }
+
+  // ============ LOGIN ============
+  if (view === "login") {
+    return (
+      <div className="auth-wrap">
+        <Toast message={toast} />
+        <div style={{marginBottom:28}}><Logo /></div>
+        <div className="auth-card">
+          <h2 className="auth-title">Artist sign in</h2>
+          <p className="auth-sub">Submit your tracks for distribution.</p>
+          <Field label="Email" placeholder="you@example.com" value={loginEmail} onChange={setLoginEmail} />
+          <Field label="Password" placeholder="••••••••" type="password" value={loginPassword} onChange={setLoginPassword} />
+          {authError && <div className="error-text">{authError}</div>}
+          <button className="btn btn-gold" onClick={handleLogin}>Sign in</button>
+          <div className="auth-links">
+            <span className="link" onClick={() => { setAuthError(""); setView("signup"); }}>Create an account</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ============ SIGNUP ============
+  if (view === "signup") {
+    return (
+      <div className="auth-wrap">
+        <Toast message={toast} />
+        <div style={{marginBottom:24}}><Logo /></div>
+        <div className="auth-card wide">
+          <h2 className="auth-title">Artist registration</h2>
+          <div className="section-label">Basic details</div>
+          <Field label="Full name" placeholder="Your stage or legal name" value={signupForm.name} onChange={(v) => setSignupForm((f) => ({...f,name:v}))} required />
+          <Field label="Email" placeholder="you@example.com" value={signupForm.email} onChange={(v) => setSignupForm((f) => ({...f,email:v}))} required />
+          <Field label="Phone number" placeholder="+91 98xxxxxxx0" value={signupForm.phone} onChange={(v) => setSignupForm((f) => ({...f,phone:v}))} required />
+          <Field label="Password" placeholder="Create a password" type="password" value={signupForm.password} onChange={(v) => setSignupForm((f) => ({...f,password:v}))} required />
+          <div className="section-label">Payout details</div>
+          <Field label="Bank account number" placeholder="For royalty payouts" value={signupForm.bankAccount} onChange={(v) => setSignupForm((f) => ({...f,bankAccount:v}))} />
+          <Field label="IFSC code" placeholder="e.g. HDFC0001234" value={signupForm.ifsc} onChange={(v) => setSignupForm((f) => ({...f,ifsc:v}))} />
+          <Field label="UPI ID (optional)" placeholder="yourname@upi" value={signupForm.upi} onChange={(v) => setSignupForm((f) => ({...f,upi:v}))} />
+          <div className="section-label">Social profiles</div>
+          <Field label="Spotify artist link" placeholder="https://open.spotify.com/artist/..." value={signupForm.spotify} onChange={(v) => setSignupForm((f) => ({...f,spotify:v}))} />
+          <Field label="YouTube channel" placeholder="https://youtube.com/@..." value={signupForm.youtube} onChange={(v) => setSignupForm((f) => ({...f,youtube:v}))} />
+          <Field label="Instagram handle" placeholder="@yourhandle" value={signupForm.instagram} onChange={(v) => setSignupForm((f) => ({...f,instagram:v}))} />
+          {authError && <div className="error-text">{authError}</div>}
+          <button className="btn btn-gold" onClick={handleSignup}>Create account</button>
+          <div style={{textAlign:"center",marginTop:14,fontSize:12,color:"#8A8590",cursor:"pointer"}} onClick={() => { setAuthError(""); setView("login"); }}>
+            Already have an account? Sign in
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ============ ARTIST DASHBOARD ============
+  if (view === "dashboard") {
+    return (
+      <div className="app-shell">
+        <Toast message={toast} />
+        <div className="sidebar">
+          <Logo />
+          <div style={{marginTop:32}}>
+            <div className="nav-item active">My submissions</div>
+            <div className="nav-item" onClick={() => setView("submit")}>Submit new song</div>
+            <div className="nav-item signout" onClick={handleSignOut}>← Sign out</div>
+          </div>
+        </div>
+        <div className="main-content">
+          <h2 style={{fontSize:24,marginBottom:4}}>Your submissions</h2>
+          <p style={{fontSize:12.5,color:"var(--text-muted)",marginBottom:22}}>Track the status of every song you've sent for distribution.</p>
+          {submissions.length === 0 && <div className="empty-state">No submissions yet. Click "Submit new song" to get started.</div>}
+          {submissions.map((s) => (
+            <div className="sub-card" key={s.id}>
+              <div className="sub-top">
+                <div className="sub-left">
+                  <div className="sub-cover">{s.coverUrl ? <img src={s.coverUrl} alt="" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:4}} /> : "🎵"}</div>
+                  <div>
+                    <div className="sub-title">{s.title || "Untitled Track"}</div>
+                    <div className="sub-meta">{s.genre || "—"} · {s.language || "—"}</div>
+                  </div>
+                </div>
+                <div className="sub-id">{s.id.slice(0,8).toUpperCase()}</div>
+              </div>
+              <FilmReelStatus status={s.status || 0} comment={s.adminComment} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ============ SUBMIT SONG ============
+  if (view === "submit") {
+    return (
+      <div className="app-shell">
+        <Toast message={toast} />
+        <div className="sidebar">
+          <Logo />
+          <div style={{marginTop:32}}>
+            <div className="nav-item" onClick={() => setView("dashboard")}>My submissions</div>
+            <div className="nav-item active">Submit new song</div>
+            <div className="nav-item signout" onClick={handleSignOut}>← Sign out</div>
+          </div>
+        </div>
+        <div className="main-content" style={{maxWidth:560}}>
+          <h2 style={{fontSize:24,marginBottom:4}}>Submit a new song</h2>
+          <div className="stepper">
+            {[1,2,3,4].map((n) => <div key={n} className={"stepper-bar"+(step >= n?" active":"")}></div>)}
+          </div>
+
+          {step === 1 && (
+            <div>
+              <div className="section-label">Step 1 · Track details</div>
+              <Field label="Song title" placeholder="e.g. Kisi Ke Muskurahat Pe (Rap Reprise)" value={form.title} onChange={update("title")} required />
+              <SelectField label="Genre" placeholder="Select a genre" options={GENRES} value={form.genre} onChange={update("genre")} required />
+              <MoodChips selected={form.moods} onToggle={(m) => update("moods")(form.moods.includes(m) ? form.moods.filter(x => x !== m) : [...form.moods, m])} />
+              <Field label="Language" placeholder="e.g. Hindi, English" value={form.language} onChange={update("language")} required />
+              <Field label="Proposed release date" type="date" value={form.releaseDate} onChange={update("releaseDate")} />
+              <button className="btn btn-gold btn-inline" onClick={() => setStep(2)}>Continue</button>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div>
+              <div className="section-label">Step 2 · Credits and lyrics</div>
+              <MultiInputList label="Lyricist(s)" values={form.lyricists} onChange={update("lyricists")} placeholder="Credited lyricist name" />
+              <MultiInputList label="Composer(s)" values={form.composers} onChange={update("composers")} placeholder="Credited composer name" />
+              <MultiInputList label="Singer(s)" values={form.singers} onChange={update("singers")} max={2} placeholder="Credited singer name" />
+              <div className="field">
+                <label>Lyrics</label>
+                <textarea className="input" rows="5" value={form.lyrics} placeholder="Paste the full lyrics here" onChange={(e) => update("lyrics")(e.target.value)}></textarea>
+              </div>
+              <div className="btn-row">
+                <button className="btn btn-outline btn-inline" onClick={() => setStep(1)}>Back</button>
+                <button className="btn btn-gold btn-inline" onClick={() => setStep(3)}>Continue</button>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div>
+              <div className="section-label">Step 3 · Upload files</div>
+              <FileDropAudio value={form.audioFile} onChange={handleAudioSelect} uploading={uploadingAudio} progress={audioProgress} />
+              <CoverFileDrop value={form.coverFile} dimensionsOk={form.coverDimensionsOk} onChange={handleCoverSelect} checking={checkingCover} />
+              <div className="btn-row">
+                <button className="btn btn-outline btn-inline" onClick={() => setStep(2)}>Back</button>
+                <button className="btn btn-gold btn-inline" disabled={!form.audioUrl || !form.coverUrl} onClick={() => setStep(4)}>Continue</button>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div>
+              <div className="section-label">Step 4 · Distribution agreement</div>
+              <div className="agreement-box">{AGREEMENT_TEXT}</div>
+              <div className="agree-checkbox-row" onClick={() => update("agreed")(!form.agreed)}>
+                <div className={"agree-checkbox"+(form.agreed?" checked":"")}>{form.agreed && "✓"}</div>
+                <span className="agree-checkbox-text">I have read and agree to the Mr. Lyricist Distributor agreement above, and confirm the rights and credits I've provided are accurate.</span>
+              </div>
+              <div className="field">
+                <label>Type your full name as signature <span className="req">*</span></label>
+                <input className="input signature-input" type="text" value={form.signature} placeholder="Your full legal name" onChange={(e) => update("signature")(e.target.value)} />
+              </div>
+              <div className="btn-row">
+                <button className="btn btn-outline btn-inline" onClick={() => setStep(3)}>Back</button>
+                <button className="btn btn-gold btn-inline"
+                  disabled={!form.agreed || !form.signature.trim() || submitting}
+                  onClick={submitSong}>{submitting ? "Submitting…" : "Sign & submit for review"}</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ============ ADMIN PANEL ============
+  if (view === "admin") {
+    return (
+      <div className="app-shell">
+        <Toast message={toast} />
+        <div className="sidebar">
+          <Logo />
+          <div style={{marginTop:8,fontSize:10.5,color:"var(--gold)",letterSpacing:1,textTransform:"uppercase"}}>Admin panel</div>
+          <div style={{marginTop:24}}>
+            <div className="nav-item signout" onClick={handleSignOut}>← Sign out</div>
+          </div>
+        </div>
+        <div className="main-content">
+          <h2 style={{fontSize:24,marginBottom:4}}>All submissions</h2>
+          <p style={{fontSize:12.5,color:"var(--text-muted)",marginBottom:22}}>Review tracks and move them through the pipeline.</p>
+          {allSubmissions.length === 0 && <div className="empty-state">No submissions yet.</div>}
+          {allSubmissions.map((s) => (
+            <div className="admin-row" key={s.id}>
+              <div className="sub-left">
+                <div className="sub-cover">{s.coverUrl ? <img src={s.coverUrl} alt="" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:4}} /> : "🎵"}</div>
+                <div>
+                  <div className="sub-title" style={{fontSize:16}}>{s.title || "Untitled Track"}</div>
+                  <div className="sub-meta">{s.artistEmail} · {STATUS_STEPS[s.status || 0]}</div>
+                </div>
+              </div>
+              {(s.status || 0) < 3 ? (
+                <button className="btn btn-outline" style={{width:"auto",padding:"8px 16px",borderColor:"var(--gold)",color:"var(--gold)"}} onClick={() => advanceStatus(s)}>
+                  Move to {STATUS_STEPS[(s.status || 0) + 1]}
+                </button>
+              ) : (
+                <span style={{fontSize:11.5,color:"var(--success)"}}>Live ✓</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+// ✅ Mount React only after Firebase fires its ready event
+function mountApp() {
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+}
+
+if (window.fb) {
+  mountApp();
+} else {
+  document.addEventListener("firebase-ready", mountApp, { once: true });
+}
+</script>
+
+</body>
+</html>
