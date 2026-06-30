@@ -1,417 +1,1264 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mr. Lyricist — Music Distribution</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter:wght@400;500;600;700&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mr. Lyricist — Music Distribution</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter:wght@400;500;600;700&family=Cinzel:wght@500;600&display=swap"
+    rel="stylesheet">
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-<style>
-:root{
-  --bg:#0a0710;
-  --bg-elevated:#15101e;
-  --bg-card:#1a1424;
-  --line:rgba(201,160,90,0.16);
-  --ink:#f3ead9;
-  --ink-dim:#a99cb0;
-  --gold:#c9a05a;
-  --gold-soft:#e3c98c;
-  --maroon:#7c1f2b;
-  --maroon-bright:#a4283a;
-  --ok:#4caf6e;
-  --pending:#8a7fd4;
-  --reject:#c0444a;
-  --radius:14px;
-}
-*{box-sizing:border-box; margin:0; padding:0;}
-body{
-  background:
-    radial-gradient(ellipse at 20% -10%, rgba(124,31,43,0.35), transparent 50%),
-    radial-gradient(ellipse at 90% 0%, rgba(201,160,90,0.10), transparent 45%),
-    var(--bg);
-  color:var(--ink);
-  font-family:'Inter', sans-serif;
-  min-height:100vh;
-  -webkit-font-smoothing:antialiased;
-}
-.serif{font-family:'Cormorant Garamond', serif;}
-.cinzel{font-family:'Cinzel', serif;}
-a{color:inherit; text-decoration:none;}
-button{font-family:inherit; cursor:pointer;}
-::selection{background:var(--maroon); color:var(--ink);}
+  <style>
+    :root {
+      --bg: #0a0710;
+      --bg-elevated: #15101e;
+      --bg-card: #1a1424;
+      --line: rgba(201, 160, 90, 0.16);
+      --ink: #f3ead9;
+      --ink-dim: #a99cb0;
+      --gold: #c9a05a;
+      --gold-soft: #e3c98c;
+      --maroon: #7c1f2b;
+      --maroon-bright: #a4283a;
+      --ok: #4caf6e;
+      --pending: #8a7fd4;
+      --reject: #c0444a;
+      --radius: 14px;
+    }
 
-/* ---------- top nav ---------- */
-header.topnav{
-  position:sticky; top:0; z-index:50;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:18px 36px;
-  background:rgba(10,7,16,0.85);
-  backdrop-filter:blur(10px);
-  border-bottom:1px solid var(--line);
-}
-.brand{display:flex; align-items:center; gap:10px; font-size:22px; letter-spacing:0.5px;}
-.brand .quill{font-size:20px; color:var(--gold);}
-.brand b{font-weight:600;}
-.brand i{font-style:italic; color:var(--gold-soft);}
-nav.links{display:flex; gap:28px; font-size:14px; color:var(--ink-dim);}
-nav.links a{padding:6px 2px; border-bottom:1px solid transparent; transition:.25s;}
-nav.links a.active, nav.links a:hover{color:var(--gold-soft); border-color:var(--gold);}
-.nav-right{display:flex; align-items:center; gap:16px;}
-.avatar{
-  width:38px; height:38px; border-radius:50%;
-  background:linear-gradient(145deg, var(--maroon), var(--gold));
-  display:flex; align-items:center; justify-content:center;
-  font-family:'Cormorant Garamond', serif; font-weight:600; font-size:16px;
-  border:1px solid var(--gold-soft);
-}
-.btn{
-  display:inline-flex; align-items:center; gap:8px;
-  padding:11px 22px; border-radius:999px; border:1px solid var(--gold);
-  background:transparent; color:var(--gold-soft); font-size:14px; font-weight:600;
-  letter-spacing:.3px; transition:.25s;
-}
-.btn:hover{background:var(--gold); color:#170d08;}
-.btn.primary{background:linear-gradient(135deg, var(--maroon-bright), var(--maroon)); border:none; color:#fbe9d0;}
-.btn.primary:hover{filter:brightness(1.15);}
-.btn.ghost{border-color:var(--line); color:var(--ink-dim);}
-.btn.ghost:hover{border-color:var(--gold); color:var(--gold-soft); background:transparent;}
-.btn.small{padding:8px 16px; font-size:12.5px;}
-.btn:disabled{opacity:.4; cursor:not-allowed;}
-.btn:disabled:hover{background:transparent; color:var(--gold-soft);}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-#app{max-width:1180px; margin:0 auto; padding:0 28px 80px;}
+    body {
+      background:
+        radial-gradient(ellipse at 20% -10%, rgba(124, 31, 43, 0.35), transparent 50%),
+        radial-gradient(ellipse at 90% 0%, rgba(201, 160, 90, 0.10), transparent 45%),
+        var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
 
-/* ---------- hero / landing ---------- */
-.hero{
-  position:relative; padding:120px 10px 90px; text-align:center; overflow:hidden;
-}
-.hero .eyebrow{
-  font-family:'Cinzel', serif; font-size:12px; letter-spacing:4px; color:var(--gold);
-  text-transform:uppercase; margin-bottom:22px; display:block;
-}
-.hero h1{
-  font-family:'Cormorant Garamond', serif; font-weight:500; font-size:64px; line-height:1.1;
-  max-width:820px; margin:0 auto 22px;
-}
-.hero h1 i{font-style:italic; color:var(--gold-soft);}
-.hero p.lead{color:var(--ink-dim); font-size:17px; max-width:520px; margin:0 auto 38px; line-height:1.6;}
-.hero .ctas{display:flex; gap:16px; justify-content:center; margin-bottom:60px;}
-.ink-divider{width:1px; height:60px; background:linear-gradient(var(--gold), transparent); margin:0 auto;}
+    .serif {
+      font-family: 'Cormorant Garamond', serif;
+    }
 
-.stats-strip{display:flex; justify-content:center; gap:60px; padding:30px 0 10px; flex-wrap:wrap;}
-.stat{text-align:center;}
-.stat .num{font-family:'Cormorant Garamond', serif; font-size:38px; color:var(--gold-soft);}
-.stat .label{font-size:12px; color:var(--ink-dim); letter-spacing:1px; text-transform:uppercase; margin-top:4px;}
+    .cinzel {
+      font-family: 'Cinzel', serif;
+    }
 
-.feature-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:90px;}
-.feature-card{
-  background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius);
-  padding:32px 26px; transition:.3s;
-}
-.feature-card:hover{border-color:var(--gold); transform:translateY(-4px);}
-.feature-card .icon{font-size:26px; margin-bottom:16px; color:var(--gold);}
-.feature-card h3{font-family:'Cormorant Garamond', serif; font-size:22px; font-weight:600; margin-bottom:10px;}
-.feature-card p{color:var(--ink-dim); font-size:14px; line-height:1.6;}
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
-footer.site-footer{
-  text-align:center; padding:50px 20px 20px; color:var(--ink-dim); font-size:13px; border-top:1px solid var(--line); margin-top:90px;
-}
+    button {
+      font-family: inherit;
+      cursor: pointer;
+    }
 
-/* ---------- auth ---------- */
-.auth-wrap{
-  max-width:420px; margin:70px auto; background:var(--bg-card); border:1px solid var(--line);
-  border-radius:var(--radius); padding:42px 36px; position:relative;
-}
-.auth-wrap::before{
-  content:""; position:absolute; inset:0; border-radius:var(--radius); padding:1px;
-  background:linear-gradient(135deg, var(--gold), transparent 40%);
-  -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; opacity:.5;
-}
-.auth-wrap h2{font-family:'Cormorant Garamond', serif; font-size:30px; text-align:center; margin-bottom:6px;}
-.auth-wrap .sub{text-align:center; color:var(--ink-dim); font-size:13px; margin-bottom:30px;}
-.field{margin-bottom:18px;}
-.field label{display:block; font-size:12.5px; color:var(--ink-dim); margin-bottom:7px; letter-spacing:.3px;}
-.field label .req{color:var(--maroon-bright);}
-input, select, textarea{
-  width:100%; background:var(--bg-elevated); border:1px solid var(--line); color:var(--ink);
-  padding:12px 14px; border-radius:9px; font-size:14px; font-family:inherit; outline:none; transition:.2s;
-}
-input::placeholder, textarea::placeholder{color:#6a6075;}
-input:focus, select:focus, textarea:focus{border-color:var(--gold);}
-.auth-switch{text-align:center; margin-top:20px; font-size:13px; color:var(--ink-dim);}
-.auth-switch a{color:var(--gold-soft); border-bottom:1px solid var(--gold);}
-.err-msg{background:rgba(192,68,74,0.15); border:1px solid var(--reject); color:#ffb3b6; font-size:13px; padding:10px 14px; border-radius:8px; margin-bottom:18px;}
-.auth-wrap form .btn{width:100%; justify-content:center; padding:13px;}
+    ::selection {
+      background: var(--maroon);
+      color: var(--ink);
+    }
 
-/* ---------- dashboard ---------- */
-.page-title{font-family:'Cormorant Garamond', serif; font-size:34px; margin:34px 0 24px; display:flex; align-items:center; gap:14px;}
-.welcome-banner{
-  background:linear-gradient(120deg, rgba(124,31,43,0.45), rgba(201,160,90,0.08)), var(--bg-card);
-  border:1px solid var(--line); border-radius:var(--radius); padding:44px; margin-top:24px;
-  display:flex; justify-content:space-between; align-items:center; gap:30px; flex-wrap:wrap;
-}
-.welcome-banner .eyebrow{font-size:12px; letter-spacing:3px; color:var(--gold); text-transform:uppercase;}
-.welcome-banner h2{font-family:'Cormorant Garamond', serif; font-size:40px; margin:10px 0 8px;}
-.welcome-banner p{color:var(--ink-dim); font-size:14px; max-width:420px; margin-bottom:22px;}
-.welcome-banner .ctas{display:flex; gap:14px;}
+    /* ---------- top nav ---------- */
+    header.topnav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 36px;
+      background: rgba(10, 7, 16, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
 
-.stat-cards{display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-top:24px;}
-.stat-card{background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius); padding:22px;}
-.stat-card .lbl{font-size:13px; color:var(--ink-dim); margin-bottom:10px;}
-.stat-card .val{font-family:'Cormorant Garamond', serif; font-size:36px;}
-.stat-card.ok .val{color:var(--ok);}
-.stat-card.pend .val{color:var(--pending);}
-.stat-card.gold .val{color:var(--gold-soft);}
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 22px;
+      letter-spacing: 0.5px;
+    }
 
-.notice-box{
-  background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius);
-  padding:20px 24px; margin-top:24px; font-size:13.5px; color:var(--ink-dim); line-height:1.8;
-}
-.notice-box b{color:var(--ink);}
+    .brand .quill {
+      font-size: 20px;
+      color: var(--gold);
+    }
 
-/* ---------- releases ---------- */
-.releases-toolbar{display:flex; gap:14px; margin:24px 0; align-items:center; flex-wrap:wrap;}
-.releases-toolbar input, .releases-toolbar select{max-width:260px;}
-.release-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:22px; margin-top:10px;}
-.release-card{background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; transition:.25s;}
-.release-card:hover{border-color:var(--gold); transform:translateY(-3px);}
-.release-art{width:100%; aspect-ratio:1/1; background:linear-gradient(135deg, var(--maroon), #2a1c10); display:flex; align-items:center; justify-content:center; font-family:'Cormorant Garamond', serif; font-size:15px; color:var(--gold-soft); text-align:center; padding:14px;}
-.release-body{padding:16px;}
-.status-chip{display:inline-block; font-size:11px; padding:4px 11px; border-radius:999px; font-weight:600; letter-spacing:.3px; text-transform:uppercase;}
-.status-chip.approved{background:rgba(76,175,110,0.18); color:var(--ok);}
-.status-chip.pending{background:rgba(138,127,212,0.18); color:var(--pending);}
-.status-chip.rejected{background:rgba(192,68,74,0.18); color:var(--reject);}
-.release-body h4{font-family:'Cormorant Garamond', serif; font-size:19px; margin:10px 0 4px;}
-.release-body .meta{font-size:12px; color:var(--ink-dim);}
-.empty-state{text-align:center; padding:90px 20px; color:var(--ink-dim);}
-.empty-state .icon{font-size:40px; margin-bottom:14px;}
+    .brand b {
+      font-weight: 600;
+    }
 
-/* ---------- wizard ---------- */
-.wizard-head{text-align:center; margin:36px 0 30px;}
-.wizard-head h1{font-family:'Cormorant Garamond', serif; font-size:36px;}
-.wizard-head p{color:var(--ink-dim); font-size:13px; margin-top:8px;}
-.steps{display:flex; align-items:center; justify-content:center; gap:0; margin-bottom:34px;}
-.step{display:flex; align-items:center; gap:10px;}
-.step .circle{width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; border:1px solid var(--line); color:var(--ink-dim);}
-.step.active .circle{background:var(--maroon-bright); border-color:var(--maroon-bright); color:#fff;}
-.step.done .circle{background:var(--ok); border-color:var(--ok); color:#0a0710;}
-.step span.label{font-size:13.5px; color:var(--ink-dim);}
-.step.active span.label{color:var(--ink);}
-.step-line{width:90px; height:1px; background:var(--line); margin:0 14px;}
+    .brand i {
+      font-style: italic;
+      color: var(--gold-soft);
+    }
 
-.panel{background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius); padding:34px; margin-bottom:24px;}
-.panel h3{font-family:'Cormorant Garamond', serif; font-size:22px; margin-bottom:22px;}
-.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
-.upload-box{
-  border:1.5px dashed var(--line); border-radius:10px; aspect-ratio:1/1; max-height:220px;
-  display:flex; align-items:center; justify-content:center; text-align:center; color:var(--ink-dim);
-  font-size:13.5px; cursor:pointer; transition:.2s; position:relative; overflow:hidden; background:var(--bg-elevated);
-}
-.upload-box:hover{border-color:var(--gold);}
-.upload-box img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
-.guideline-list{font-size:12.5px; color:var(--ink-dim); line-height:1.9; padding-left:18px;}
-.row-inline{display:flex; gap:10px;}
-.row-inline input{flex:1;}
-.wizard-actions{display:flex; justify-content:space-between; margin-top:10px;}
+    nav.links {
+      display: flex;
+      gap: 28px;
+      font-size: 14px;
+      color: var(--ink-dim);
+    }
 
-.track-block{border-top:1px solid var(--line); padding-top:22px; margin-top:22px;}
-.track-block:first-child{border-top:none; padding-top:0; margin-top:0;}
-.track-block .tnum{font-family:'Cormorant Garamond', serif; font-style:italic; color:var(--gold-soft); font-size:18px; margin-bottom:18px;}
-.dropzone{border:2px dashed var(--line); border-radius:12px; padding:50px 20px; text-align:center; transition:.2s;}
-.dropzone.drag{border-color:var(--gold); background:rgba(201,160,90,0.05);}
-.dropzone h4{font-family:'Cormorant Garamond', serif; font-size:22px; margin-bottom:6px;}
-.dropzone p.or{color:var(--ink-dim); font-size:12px; margin:10px 0;}
-.audio-row{display:flex; align-items:center; gap:14px; background:var(--bg-elevated); border:1px solid var(--line); border-radius:9px; padding:12px 16px;}
-.audio-row .name{flex:1; font-size:13.5px;}
-.progress-bar{height:4px; background:var(--bg-elevated); border-radius:99px; overflow:hidden; margin-top:6px;}
-.progress-bar .fill{height:100%; background:var(--gold); width:0%; transition:.3s;}
+    nav.links a {
+      padding: 6px 2px;
+      border-bottom: 1px solid transparent;
+      transition: .25s;
+    }
 
-/* ---------- rights / agreement page ---------- */
-.agreement-card{
-  background:linear-gradient(180deg, #1c1421, #150f1c);
-  border:1px solid var(--line); border-radius:var(--radius); padding:0; overflow:hidden;
-  box-shadow:0 30px 80px rgba(0,0,0,0.4);
-}
-.agreement-header{
-  text-align:center; padding:40px 30px 26px; border-bottom:1px solid var(--line);
-  background:radial-gradient(ellipse at top, rgba(124,31,43,0.4), transparent 70%);
-  position:relative;
-}
-.agreement-header .seal{
-  width:54px; height:54px; border-radius:50%; border:1.5px solid var(--gold); margin:0 auto 16px;
-  display:flex; align-items:center; justify-content:center; font-family:'Cinzel',serif; font-size:18px; color:var(--gold-soft);
-}
-.agreement-header h2{font-family:'Cormorant Garamond', serif; font-size:30px;}
-.agreement-header p{color:var(--ink-dim); font-size:12.5px; margin-top:8px; letter-spacing:.3px;}
-.agreement-body{padding:36px 44px;}
-.clause{margin-bottom:26px;}
-.clause .num{font-family:'Cinzel', serif; font-size:11px; letter-spacing:2px; color:var(--gold); text-transform:uppercase; margin-bottom:8px;}
-.clause h4{font-family:'Cormorant Garamond', serif; font-size:19px; margin-bottom:8px;}
-.clause p{font-size:13.5px; color:var(--ink-dim); line-height:1.8;}
-.split-visual{display:flex; align-items:center; gap:0; border-radius:10px; overflow:hidden; height:44px; margin:16px 0; border:1px solid var(--line);}
-.split-visual .a{background:var(--gold); width:70%; display:flex; align-items:center; justify-content:center; color:#170d08; font-weight:700; font-size:14px;}
-.split-visual .l{background:var(--maroon-bright); width:30%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:14px;}
-.split-legend{display:flex; justify-content:space-between; font-size:12px; color:var(--ink-dim);}
-.checklist{display:flex; flex-direction:column; gap:14px; margin-top:6px;}
-.check-item{display:flex; align-items:flex-start; gap:12px; cursor:pointer; padding:12px 14px; border:1px solid var(--line); border-radius:9px; transition:.2s;}
-.check-item:hover{border-color:var(--gold);}
-.check-item input{width:18px; height:18px; margin-top:2px; accent-color:var(--gold);}
-.check-item span{font-size:13px; color:var(--ink-dim); line-height:1.6;}
-.check-item.checked{border-color:var(--ok); background:rgba(76,175,110,0.06);}
+    nav.links a.active,
+    nav.links a:hover {
+      color: var(--gold-soft);
+      border-color: var(--gold);
+    }
 
-.sig-tabs{display:flex; gap:10px; margin-bottom:16px;}
-.sig-tab{padding:9px 18px; border:1px solid var(--line); border-radius:999px; font-size:12.5px; color:var(--ink-dim);}
-.sig-tab.active{border-color:var(--gold); color:var(--gold-soft); background:rgba(201,160,90,0.08);}
-.sig-pane{display:none;}
-.sig-pane.active{display:block;}
-#sigCanvas{width:100%; height:160px; background:var(--bg-elevated); border:1px solid var(--line); border-radius:9px; touch-action:none; cursor:crosshair;}
-.sig-typed-preview{
-  font-family:'Cormorant Garamond', serif; font-style:italic; font-size:38px; color:var(--gold-soft);
-  border-bottom:1px solid var(--gold); padding:18px 10px 10px; text-align:center; min-height:70px; display:flex; align-items:center; justify-content:center;
-}
-.sig-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:10px;}
-.agreement-footer{padding:26px 44px 38px; border-top:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;}
-.date-stamp{font-size:12px; color:var(--ink-dim);}
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
 
-.toast{position:fixed; bottom:28px; right:28px; background:var(--bg-card); border:1px solid var(--gold); color:var(--ink); padding:14px 20px; border-radius:10px; font-size:13.5px; z-index:200; box-shadow:0 10px 30px rgba(0,0,0,0.4); display:none;}
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, var(--maroon), var(--gold));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600;
+      font-size: 16px;
+      border: 1px solid var(--gold-soft);
+    }
 
-@media(max-width:760px){
-  .hero h1{font-size:40px;}
-  .feature-grid, .grid-2, .stat-cards{grid-template-columns:1fr;}
-  nav.links{display:none;}
-  .agreement-body, .agreement-header, .agreement-footer{padding:26px 20px;}
-  .welcome-banner{padding:28px;}
-}
-</style>
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 22px;
+      border-radius: 999px;
+      border: 1px solid var(--gold);
+      background: transparent;
+      color: var(--gold-soft);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: .3px;
+      transition: .25s;
+    }
+
+    .btn:hover {
+      background: var(--gold);
+      color: #170d08;
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, var(--maroon-bright), var(--maroon));
+      border: none;
+      color: #fbe9d0;
+    }
+
+    .btn.primary:hover {
+      filter: brightness(1.15);
+    }
+
+    .btn.ghost {
+      border-color: var(--line);
+      color: var(--ink-dim);
+    }
+
+    .btn.ghost:hover {
+      border-color: var(--gold);
+      color: var(--gold-soft);
+      background: transparent;
+    }
+
+    .btn.small {
+      padding: 8px 16px;
+      font-size: 12.5px;
+    }
+
+    .btn:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .btn:disabled:hover {
+      background: transparent;
+      color: var(--gold-soft);
+    }
+
+    #app {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 28px 80px;
+    }
+
+    /* ---------- hero / landing ---------- */
+    .hero {
+      position: relative;
+      padding: 120px 10px 90px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero .eyebrow {
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      letter-spacing: 4px;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 22px;
+      display: block;
+    }
+
+    .hero h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 500;
+      font-size: 64px;
+      line-height: 1.1;
+      max-width: 820px;
+      margin: 0 auto 22px;
+    }
+
+    .hero h1 i {
+      font-style: italic;
+      color: var(--gold-soft);
+    }
+
+    .hero p.lead {
+      color: var(--ink-dim);
+      font-size: 17px;
+      max-width: 520px;
+      margin: 0 auto 38px;
+      line-height: 1.6;
+    }
+
+    .hero .ctas {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 60px;
+    }
+
+    .ink-divider {
+      width: 1px;
+      height: 60px;
+      background: linear-gradient(var(--gold), transparent);
+      margin: 0 auto;
+    }
+
+    .stats-strip {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      padding: 30px 0 10px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat .num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 38px;
+      color: var(--gold-soft);
+    }
+
+    .stat .label {
+      font-size: 12px;
+      color: var(--ink-dim);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 90px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 32px 26px;
+      transition: .3s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-4px);
+    }
+
+    .feature-card .icon {
+      font-size: 26px;
+      margin-bottom: 16px;
+      color: var(--gold);
+    }
+
+    .feature-card h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .feature-card p {
+      color: var(--ink-dim);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    footer.site-footer {
+      text-align: center;
+      padding: 50px 20px 20px;
+      color: var(--ink-dim);
+      font-size: 13px;
+      border-top: 1px solid var(--line);
+      margin-top: 90px;
+    }
+
+    /* ---------- auth ---------- */
+    .auth-wrap {
+      max-width: 420px;
+      margin: 70px auto;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 42px 36px;
+      position: relative;
+    }
+
+    .auth-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      padding: 1px;
+      background: linear-gradient(135deg, var(--gold), transparent 40%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      opacity: .5;
+    }
+
+    .auth-wrap h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 30px;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .auth-wrap .sub {
+      text-align: center;
+      color: var(--ink-dim);
+      font-size: 13px;
+      margin-bottom: 30px;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 12.5px;
+      color: var(--ink-dim);
+      margin-bottom: 7px;
+      letter-spacing: .3px;
+    }
+
+    .field label .req {
+      color: var(--maroon-bright);
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      background: var(--bg-elevated);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      padding: 12px 14px;
+      border-radius: 9px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: .2s;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #6a6075;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--gold);
+    }
+
+    .auth-switch {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--ink-dim);
+    }
+
+    .auth-switch a {
+      color: var(--gold-soft);
+      border-bottom: 1px solid var(--gold);
+    }
+
+    .err-msg {
+      background: rgba(192, 68, 74, 0.15);
+      border: 1px solid var(--reject);
+      color: #ffb3b6;
+      font-size: 13px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 18px;
+    }
+
+    .auth-wrap form .btn {
+      width: 100%;
+      justify-content: center;
+      padding: 13px;
+    }
+
+    /* ---------- dashboard ---------- */
+    .page-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 34px;
+      margin: 34px 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .welcome-banner {
+      background: linear-gradient(120deg, rgba(124, 31, 43, 0.45), rgba(201, 160, 90, 0.08)), var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 44px;
+      margin-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+
+    .welcome-banner .eyebrow {
+      font-size: 12px;
+      letter-spacing: 3px;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+
+    .welcome-banner h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 40px;
+      margin: 10px 0 8px;
+    }
+
+    .welcome-banner p {
+      color: var(--ink-dim);
+      font-size: 14px;
+      max-width: 420px;
+      margin-bottom: 22px;
+    }
+
+    .welcome-banner .ctas {
+      display: flex;
+      gap: 14px;
+    }
+
+    .stat-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 22px;
+    }
+
+    .stat-card .lbl {
+      font-size: 13px;
+      color: var(--ink-dim);
+      margin-bottom: 10px;
+    }
+
+    .stat-card .val {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 36px;
+    }
+
+    .stat-card.ok .val {
+      color: var(--ok);
+    }
+
+    .stat-card.pend .val {
+      color: var(--pending);
+    }
+
+    .stat-card.gold .val {
+      color: var(--gold-soft);
+    }
+
+    .notice-box {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-top: 24px;
+      font-size: 13.5px;
+      color: var(--ink-dim);
+      line-height: 1.8;
+    }
+
+    .notice-box b {
+      color: var(--ink);
+    }
+
+    /* ---------- releases ---------- */
+    .releases-toolbar {
+      display: flex;
+      gap: 14px;
+      margin: 24px 0;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .releases-toolbar input,
+    .releases-toolbar select {
+      max-width: 260px;
+    }
+
+    .release-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 22px;
+      margin-top: 10px;
+    }
+
+    .release-card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: .25s;
+    }
+
+    .release-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-3px);
+    }
+
+    .release-art {
+      width: 100%;
+      aspect-ratio: 1/1;
+      background: linear-gradient(135deg, var(--maroon), #2a1c10);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 15px;
+      color: var(--gold-soft);
+      text-align: center;
+      padding: 14px;
+    }
+
+    .release-body {
+      padding: 16px;
+    }
+
+    .status-chip {
+      display: inline-block;
+      font-size: 11px;
+      padding: 4px 11px;
+      border-radius: 999px;
+      font-weight: 600;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+    }
+
+    .status-chip.approved {
+      background: rgba(76, 175, 110, 0.18);
+      color: var(--ok);
+    }
+
+    .status-chip.pending {
+      background: rgba(138, 127, 212, 0.18);
+      color: var(--pending);
+    }
+
+    .status-chip.rejected {
+      background: rgba(192, 68, 74, 0.18);
+      color: var(--reject);
+    }
+
+    .release-body h4 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 19px;
+      margin: 10px 0 4px;
+    }
+
+    .release-body .meta {
+      font-size: 12px;
+      color: var(--ink-dim);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 90px 20px;
+      color: var(--ink-dim);
+    }
+
+    .empty-state .icon {
+      font-size: 40px;
+      margin-bottom: 14px;
+    }
+
+    /* ---------- wizard ---------- */
+    .wizard-head {
+      text-align: center;
+      margin: 36px 0 30px;
+    }
+
+    .wizard-head h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 36px;
+    }
+
+    .wizard-head p {
+      color: var(--ink-dim);
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .steps {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 34px;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .step .circle {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      border: 1px solid var(--line);
+      color: var(--ink-dim);
+    }
+
+    .step.active .circle {
+      background: var(--maroon-bright);
+      border-color: var(--maroon-bright);
+      color: #fff;
+    }
+
+    .step.done .circle {
+      background: var(--ok);
+      border-color: var(--ok);
+      color: #0a0710;
+    }
+
+    .step span.label {
+      font-size: 13.5px;
+      color: var(--ink-dim);
+    }
+
+    .step.active span.label {
+      color: var(--ink);
+    }
+
+    .step-line {
+      width: 90px;
+      height: 1px;
+      background: var(--line);
+      margin: 0 14px;
+    }
+
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 34px;
+      margin-bottom: 24px;
+    }
+
+    .panel h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      margin-bottom: 22px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .upload-box {
+      border: 1.5px dashed var(--line);
+      border-radius: 10px;
+      aspect-ratio: 1/1;
+      max-height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--ink-dim);
+      font-size: 13.5px;
+      cursor: pointer;
+      transition: .2s;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg-elevated);
+    }
+
+    .upload-box:hover {
+      border-color: var(--gold);
+    }
+
+    .upload-box img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .guideline-list {
+      font-size: 12.5px;
+      color: var(--ink-dim);
+      line-height: 1.9;
+      padding-left: 18px;
+    }
+
+    .row-inline {
+      display: flex;
+      gap: 10px;
+    }
+
+    .row-inline input {
+      flex: 1;
+    }
+
+    .wizard-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+
+    .track-block {
+      border-top: 1px solid var(--line);
+      padding-top: 22px;
+      margin-top: 22px;
+    }
+
+    .track-block:first-child {
+      border-top: none;
+      padding-top: 0;
+      margin-top: 0;
+    }
+
+    .track-block .tnum {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      color: var(--gold-soft);
+      font-size: 18px;
+      margin-bottom: 18px;
+    }
+
+    .dropzone {
+      border: 2px dashed var(--line);
+      border-radius: 12px;
+      padding: 50px 20px;
+      text-align: center;
+      transition: .2s;
+    }
+
+    .dropzone.drag {
+      border-color: var(--gold);
+      background: rgba(201, 160, 90, 0.05);
+    }
+
+    .dropzone h4 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+
+    .dropzone p.or {
+      color: var(--ink-dim);
+      font-size: 12px;
+      margin: 10px 0;
+    }
+
+    .audio-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 12px 16px;
+    }
+
+    .audio-row .name {
+      flex: 1;
+      font-size: 13.5px;
+    }
+
+    .progress-bar {
+      height: 4px;
+      background: var(--bg-elevated);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .progress-bar .fill {
+      height: 100%;
+      background: var(--gold);
+      width: 0%;
+      transition: .3s;
+    }
+
+    /* ---------- rights / agreement page ---------- */
+    .agreement-card {
+      background: linear-gradient(180deg, #1c1421, #150f1c);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 0;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+    }
+
+    .agreement-header {
+      text-align: center;
+      padding: 40px 30px 26px;
+      border-bottom: 1px solid var(--line);
+      background: radial-gradient(ellipse at top, rgba(124, 31, 43, 0.4), transparent 70%);
+      position: relative;
+    }
+
+    .agreement-header .seal {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      border: 1.5px solid var(--gold);
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cinzel', serif;
+      font-size: 18px;
+      color: var(--gold-soft);
+    }
+
+    .agreement-header h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 30px;
+    }
+
+    .agreement-header p {
+      color: var(--ink-dim);
+      font-size: 12.5px;
+      margin-top: 8px;
+      letter-spacing: .3px;
+    }
+
+    .agreement-body {
+      padding: 36px 44px;
+    }
+
+    .clause {
+      margin-bottom: 26px;
+    }
+
+    .clause .num {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .clause h4 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 19px;
+      margin-bottom: 8px;
+    }
+
+    .clause p {
+      font-size: 13.5px;
+      color: var(--ink-dim);
+      line-height: 1.8;
+    }
+
+    .split-visual {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 44px;
+      margin: 16px 0;
+      border: 1px solid var(--line);
+    }
+
+    .split-visual .a {
+      background: var(--gold);
+      width: 70%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #170d08;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .split-visual .l {
+      background: var(--maroon-bright);
+      width: 30%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .split-legend {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--ink-dim);
+    }
+
+    .checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 6px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      transition: .2s;
+    }
+
+    .check-item:hover {
+      border-color: var(--gold);
+    }
+
+    .check-item input {
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      accent-color: var(--gold);
+    }
+
+    .check-item span {
+      font-size: 13px;
+      color: var(--ink-dim);
+      line-height: 1.6;
+    }
+
+    .check-item.checked {
+      border-color: var(--ok);
+      background: rgba(76, 175, 110, 0.06);
+    }
+
+    .sig-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .sig-tab {
+      padding: 9px 18px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 12.5px;
+      color: var(--ink-dim);
+    }
+
+    .sig-tab.active {
+      border-color: var(--gold);
+      color: var(--gold-soft);
+      background: rgba(201, 160, 90, 0.08);
+    }
+
+    .sig-pane {
+      display: none;
+    }
+
+    .sig-pane.active {
+      display: block;
+    }
+
+    #sigCanvas {
+      width: 100%;
+      height: 160px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .sig-typed-preview {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 38px;
+      color: var(--gold-soft);
+      border-bottom: 1px solid var(--gold);
+      padding: 18px 10px 10px;
+      text-align: center;
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sig-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .agreement-footer {
+      padding: 26px 44px 38px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .date-stamp {
+      font-size: 12px;
+      color: var(--ink-dim);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: var(--bg-card);
+      border: 1px solid var(--gold);
+      color: var(--ink);
+      padding: 14px 20px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      z-index: 200;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      display: none;
+    }
+
+    @media(max-width:760px) {
+      .hero h1 {
+        font-size: 40px;
+      }
+
+      .feature-grid,
+      .grid-2,
+      .stat-cards {
+        grid-template-columns: 1fr;
+      }
+
+      nav.links {
+        display: none;
+      }
+
+      .agreement-body,
+      .agreement-header,
+      .agreement-footer {
+        padding: 26px 20px;
+      }
+
+      .welcome-banner {
+        padding: 28px;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<header class="topnav">
-  <div class="brand" onclick="navigate('home')" style="cursor:pointer">
-    <span class="quill">✒</span><b>Mr.</b><i>Lyricist</i>
-  </div>
-  <nav class="links" id="navLinks"></nav>
-  <div class="nav-right" id="navRight"></div>
-</header>
+  <header class="topnav">
+    <div class="brand" onclick="navigate('home')" style="cursor:pointer">
+      <span class="quill">✒</span><b>Mr.</b><i>Lyricist</i>
+    </div>
+    <nav class="links" id="navLinks"></nav>
+    <div class="nav-right" id="navRight"></div>
+  </header>
 
-<div id="app"></div>
-<div class="toast" id="toast"></div>
+  <div id="app"></div>
+  <div class="toast" id="toast"></div>
 
-<script>
-/* =========================================================
-   FIREBASE CONFIG — replace with your project's config
-   (same project pattern as your internship portal)
-========================================================= */
-const firebaseConfig = {
-  apiKey: "AIzaSyBVKR41F6h30Snug0aTTSKHi0dKCKDBVoc",
-  authDomain: "music-distribution-e2392.firebaseapp.com",
-  projectId: "music-distribution-e2392",
-  storageBucket: "music-distribution-e2392.firebasestorage.app",
-  messagingSenderId: "919953303747",
-  appId: "1:919953303747:web:24afbc20521654cb489a76"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-/* =========================================================
-   CLOUDINARY CONFIG — replace with your cloud name + unsigned preset
-========================================================= */
-const CLOUDINARY_CLOUD_NAME = "du0qzod8p";
-const CLOUDINARY_UPLOAD_PRESET = "mr-lyricist";
-
-function cloudinaryUpload(file, resourceType, onProgress){
-  return new Promise((resolve, reject)=>{
-    const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", url);
-    xhr.upload.onprogress = e => { if(onProgress && e.lengthComputable) onProgress(Math.round(e.loaded/e.total*100)); };
-    xhr.onload = () => {
-      if(xhr.status>=200 && xhr.status<300) resolve(JSON.parse(xhr.responseText));
-      else reject(new Error("Upload failed"));
+  <script>
+    /* =========================================================
+       FIREBASE CONFIG — replace with your project's config
+       (same project pattern as your internship portal)
+    ========================================================= */
+    const firebaseConfig = {
+      apiKey: "AIzaSyBVKR41F6h30Snug0aTTSKHi0dKCKDBVoc",
+      authDomain: "music-distribution-e2392.firebaseapp.com",
+      projectId: "music-distribution-e2392",
+      storageBucket: "music-distribution-e2392.firebasestorage.app",
+      messagingSenderId: "919953303747",
+      appId: "1:919953303747:web:24afbc20521654cb489a76"
     };
-    xhr.onerror = () => reject(new Error("Network error"));
-    xhr.send(fd);
-  });
-}
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-/* ========================= state ========================= */
-let currentUser = null;
-let releaseDraft = { artwork:null, title:"", version:"", labelName:"Mr. Lyricist",
-  releaseDate:"", originalDate:"", pLine:"", cLine:"", priceBand:"Standard", textLang:"",
-  tracks:[], // {file, url, title, mainArtist, feat, isrc, lyricist, composer, producer, publisher, genre, subGenre, explicit, lyricsLang, ytLink, lyrics}
-  agreement:{ ownership:false, accurate:false, noInfringe:false, royaltyAccepted:false,
-    sigType:"typed", typedName:"", drawnDataUrl:null, agreedFinal:false, signedAt:null }
-};
-let wizardStep = 1;
+    /* =========================================================
+       CLOUDINARY CONFIG — replace with your cloud name + unsigned preset
+    ========================================================= */
+    const CLOUDINARY_CLOUD_NAME = "du0qzod8p";
+    const CLOUDINARY_UPLOAD_PRESET = "mr-lyricist";
 
-function toast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.style.display='block';
-  clearTimeout(window.__toastTimer);
-  window.__toastTimer = setTimeout(()=> t.style.display='none', 3200);
-}
+    function cloudinaryUpload(file, resourceType, onProgress) {
+      return new Promise((resolve, reject) => {
+        const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", url);
+        xhr.upload.onprogress = e => { if (onProgress && e.lengthComputable) onProgress(Math.round(e.loaded / e.total * 100)); };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve(JSON.parse(xhr.responseText));
+          else reject(new Error("Upload failed"));
+        };
+        xhr.onerror = () => reject(new Error("Network error"));
+        xhr.send(fd);
+      });
+    }
 
-/* ========================= router ========================= */
-function navigate(route){
-  location.hash = route;
-}
-window.addEventListener('hashchange', render);
+    /* ========================= state ========================= */
+    let currentUser = null;
+    let releaseDraft = {
+      artwork: null, title: "", version: "", labelName: "Mr. Lyricist",
+      releaseDate: "", originalDate: "", pLine: "", cLine: "", priceBand: "Standard", textLang: "",
+      tracks: [], // {file, url, title, mainArtist, feat, isrc, lyricist, composer, producer, publisher, genre, subGenre, explicit, lyricsLang, ytLink, lyrics}
+      agreement: {
+        ownership: false, accurate: false, noInfringe: false, royaltyAccepted: false,
+        sigType: "typed", typedName: "", drawnDataUrl: null, agreedFinal: false, signedAt: null
+      }
+    };
+    let wizardStep = 1;
 
-function renderNav(){
-  const navLinks = document.getElementById('navLinks');
-  const navRight = document.getElementById('navRight');
-  const route = (location.hash || '#home').slice(1);
-  if(currentUser){
-    navLinks.innerHTML = `
-      <a href="#dashboard" class="${route==='dashboard'?'active':''}">Dashboard</a>
-      <a href="#releases" class="${route==='releases'?'active':''}">All Releases</a>
-      <a href="#wizard" class="${route==='wizard'?'active':''}">Add Release</a>
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.style.display = 'block';
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => t.style.display = 'none', 3200);
+    }
+
+    /* ========================= router ========================= */
+    function navigate(route) {
+      location.hash = route;
+    }
+    window.addEventListener('hashchange', render);
+
+    function renderNav() {
+      const navLinks = document.getElementById('navLinks');
+      const navRight = document.getElementById('navRight');
+      const route = (location.hash || '#home').slice(1);
+      if (currentUser) {
+        navLinks.innerHTML = `
+      <a href="#dashboard" class="${route === 'dashboard' ? 'active' : ''}">Dashboard</a>
+      <a href="#releases" class="${route === 'releases' ? 'active' : ''}">All Releases</a>
+      <a href="#wizard" class="${route === 'wizard' ? 'active' : ''}">Add Release</a>
     `;
-    navRight.innerHTML = `
+        navRight.innerHTML = `
       <button class="btn small ghost" onclick="signOutUser()">Sign Out</button>
-      <div class="avatar">${(currentUser.email||'A')[0].toUpperCase()}</div>
+      <div class="avatar">${(currentUser.email || 'A')[0].toUpperCase()}</div>
     `;
-  } else {
-    navLinks.innerHTML = `
-      <a href="#home" class="${route==='home'?'active':''}">Home</a>
-      <a href="#login" class="${route==='login'?'active':''}">Artist Login</a>
+      } else {
+        navLinks.innerHTML = `
+      <a href="#home" class="${route === 'home' ? 'active' : ''}">Home</a>
+      <a href="#login" class="${route === 'login' ? 'active' : ''}">Artist Login</a>
     `;
-    navRight.innerHTML = `<a href="#register" class="btn primary small">Submit Your Music</a>`;
-  }
-}
+        navRight.innerHTML = `<a href="#register" class="btn primary small">Submit Your Music</a>`;
+      }
+    }
 
-function render(){
-  renderNav();
-  const route = (location.hash || '#home').slice(1);
-  const protectedRoutes = ['dashboard','releases','wizard'];
-  if(protectedRoutes.includes(route) && !currentUser){
-    navigate('login'); return;
-  }
-  const app = document.getElementById('app');
-  if(route==='home') app.innerHTML = renderHome();
-  else if(route==='login') app.innerHTML = renderLogin();
-  else if(route==='register') app.innerHTML = renderRegister();
-  else if(route==='dashboard') { app.innerHTML = renderDashboardShell(); loadDashboardStats(); }
-  else if(route==='releases') { app.innerHTML = renderReleasesShell(); loadReleases(); }
-  else if(route==='wizard') { wizardStep = 1; app.innerHTML = renderWizard(); bindWizardStep1(); }
-  else app.innerHTML = renderHome();
-  window.scrollTo(0,0);
-}
+    function render() {
+      renderNav();
+      const route = (location.hash || '#home').slice(1);
+      const protectedRoutes = ['dashboard', 'releases', 'wizard'];
+      if (protectedRoutes.includes(route) && !currentUser) {
+        navigate('login'); return;
+      }
+      const app = document.getElementById('app');
+      if (route === 'home') app.innerHTML = renderHome();
+      else if (route === 'login') app.innerHTML = renderLogin();
+      else if (route === 'register') app.innerHTML = renderRegister();
+      else if (route === 'dashboard') { app.innerHTML = renderDashboardShell(); loadDashboardStats(); }
+      else if (route === 'releases') { app.innerHTML = renderReleasesShell(); loadReleases(); }
+      else if (route === 'wizard') { wizardStep = 1; app.innerHTML = renderWizard(); bindWizardStep1(); }
+      else app.innerHTML = renderHome();
+      window.scrollTo(0, 0);
+    }
 
-/* ========================= HOME ========================= */
-function renderHome(){
-  return `
+    /* ========================= HOME ========================= */
+    function renderHome() {
+      return `
   <section class="hero">
     <span class="eyebrow">A Mr. Lyricist Label Initiative</span>
     <h1>Your Music, <i>Distributed</i><br>With Soul & Sincerity</h1>
@@ -450,11 +1297,11 @@ function renderHome(){
     Mr. Lyricist Distribution · A Sohima Production Initiative · contact@mrlyricist.in
   </footer>
   `;
-}
+    }
 
-/* ========================= AUTH ========================= */
-function renderLogin(){
-  return `
+    /* ========================= AUTH ========================= */
+    function renderLogin() {
+      return `
   <div class="auth-wrap">
     <h2>Welcome Back</h2>
     <div class="sub">Sign in to manage your releases</div>
@@ -466,9 +1313,9 @@ function renderLogin(){
     </form>
     <div class="auth-switch">New here? <a href="#register">Create an artist account</a></div>
   </div>`;
-}
-function renderRegister(){
-  return `
+    }
+    function renderRegister() {
+      return `
   <div class="auth-wrap">
     <h2>Join Mr. Lyricist</h2>
     <div class="sub">Create your artist account to start submitting</div>
@@ -482,49 +1329,49 @@ function renderRegister(){
     </form>
     <div class="auth-switch">Already have an account? <a href="#login">Sign in</a></div>
   </div>`;
-}
+    }
 
-document.addEventListener('submit', async (e)=>{
-  if(e.target.id==='loginForm'){
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const pass = document.getElementById('loginPass').value;
-    try{
-      await auth.signInWithEmailAndPassword(email, pass);
-      navigate('dashboard');
-    }catch(err){ showAuthErr(err.message); }
-  }
-  if(e.target.id==='registerForm'){
-    e.preventDefault();
-    const name = document.getElementById('regName').value;
-    const email = document.getElementById('regEmail').value;
-    const phone = document.getElementById('regPhone').value;
-    const pass = document.getElementById('regPass').value;
-    try{
-      const cred = await auth.createUserWithEmailAndPassword(email, pass);
-      await db.collection('artists').doc(cred.user.uid).set({
-        name, email, phone, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      toast("Account created! Welcome to Mr. Lyricist.");
-      navigate('dashboard');
-    }catch(err){ showAuthErr(err.message); }
-  }
-});
-function showAuthErr(msg){
-  const el = document.getElementById('authErr');
-  if(el) el.innerHTML = `<div class="err-msg">${msg}</div>`;
-}
-function signOutUser(){ auth.signOut().then(()=> navigate('home')); }
+    document.addEventListener('submit', async (e) => {
+      if (e.target.id === 'loginForm') {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const pass = document.getElementById('loginPass').value;
+        try {
+          await auth.signInWithEmailAndPassword(email, pass);
+          navigate('dashboard');
+        } catch (err) { showAuthErr(err.message); }
+      }
+      if (e.target.id === 'registerForm') {
+        e.preventDefault();
+        const name = document.getElementById('regName').value;
+        const email = document.getElementById('regEmail').value;
+        const phone = document.getElementById('regPhone').value;
+        const pass = document.getElementById('regPass').value;
+        try {
+          const cred = await auth.createUserWithEmailAndPassword(email, pass);
+          await db.collection('artists').doc(cred.user.uid).set({
+            name, email, phone, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          toast("Account created! Welcome to Mr. Lyricist.");
+          navigate('dashboard');
+        } catch (err) { showAuthErr(err.message); }
+      }
+    });
+    function showAuthErr(msg) {
+      const el = document.getElementById('authErr');
+      if (el) el.innerHTML = `<div class="err-msg">${msg}</div>`;
+    }
+    function signOutUser() { auth.signOut().then(() => navigate('home')); }
 
-auth.onAuthStateChanged(user=>{
-  currentUser = user;
-  render();
-});
+    auth.onAuthStateChanged(user => {
+      currentUser = user;
+      render();
+    });
 
-/* ========================= DASHBOARD ========================= */
-function renderDashboardShell(){
-  const name = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : 'Artist';
-  return `
+    /* ========================= DASHBOARD ========================= */
+    function renderDashboardShell() {
+      const name = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : 'Artist';
+      return `
   <div class="welcome-banner">
     <div>
       <span class="eyebrow">Hello, Welcome Back</span>
@@ -549,28 +1396,28 @@ function renderDashboardShell(){
     <b>Processing Time:</b> Submitted releases are reviewed and published within <b>4–5 business days</b>. For queries, reach out at <b>sohimaproduction@gmail.com</b>.
   </div>
   `;
-}
-async function loadDashboardStats(){
-  if(!currentUser) return;
-  const snap = await db.collection('releases').where('uid','==',currentUser.uid).get();
-  let pending=0, approved=0, rejected=0;
-  snap.forEach(doc=>{
-    const s = doc.data().status || 'pending';
-    if(s==='approved') approved++; else if(s==='rejected') rejected++; else pending++;
-  });
-  const cards = document.getElementById('statCards');
-  if(!cards) return;
-  cards.innerHTML = `
+    }
+    async function loadDashboardStats() {
+      if (!currentUser) return;
+      const snap = await db.collection('releases').where('uid', '==', currentUser.uid).get();
+      let pending = 0, approved = 0, rejected = 0;
+      snap.forEach(doc => {
+        const s = doc.data().status || 'pending';
+        if (s === 'approved') approved++; else if (s === 'rejected') rejected++; else pending++;
+      });
+      const cards = document.getElementById('statCards');
+      if (!cards) return;
+      cards.innerHTML = `
     <div class="stat-card pend"><div class="lbl">Total Pending</div><div class="val">${pending}</div></div>
     <div class="stat-card ok"><div class="lbl">Total Approved</div><div class="val">${approved}</div></div>
     <div class="stat-card"><div class="lbl">Total Rejected</div><div class="val">${rejected}</div></div>
     <div class="stat-card gold"><div class="lbl">Total Releases</div><div class="val">${snap.size}</div></div>
   `;
-}
+    }
 
-/* ========================= ALL RELEASES ========================= */
-function renderReleasesShell(){
-  return `
+    /* ========================= ALL RELEASES ========================= */
+    function renderReleasesShell() {
+      return `
   <div class="page-title">All Releases</div>
   <div class="releases-toolbar">
     <input type="text" id="searchRelease" placeholder="Search song or artist...">
@@ -584,54 +1431,54 @@ function renderReleasesShell(){
   </div>
   <div class="release-grid" id="releaseGrid"><div class="empty-state">Loading your releases…</div></div>
   `;
-}
-let __allReleases = [];
-async function loadReleases(){
-  if(!currentUser) return;
-  const snap = await db.collection('releases').where('uid','==',currentUser.uid).orderBy('createdAt','desc').get();
-  __allReleases = [];
-  snap.forEach(doc=> __allReleases.push({id:doc.id, ...doc.data()}));
-  paintReleases();
-  document.getElementById('searchRelease').addEventListener('input', paintReleases);
-  document.getElementById('filterStatus').addEventListener('change', paintReleases);
-}
-function paintReleases(){
-  const q = (document.getElementById('searchRelease')?.value || '').toLowerCase();
-  const status = document.getElementById('filterStatus')?.value || '';
-  const grid = document.getElementById('releaseGrid');
-  let list = __allReleases.filter(r=>{
-    const matchQ = !q || (r.title||'').toLowerCase().includes(q) || (r.tracks?.[0]?.mainArtist||'').toLowerCase().includes(q);
-    const matchS = !status || (r.status||'pending')===status;
-    return matchQ && matchS;
-  });
-  if(list.length===0){
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="icon">🎼</div>No releases yet. Your submitted songs will appear here.</div>`;
-    return;
-  }
-  grid.innerHTML = list.map(r=>`
+    }
+    let __allReleases = [];
+    async function loadReleases() {
+      if (!currentUser) return;
+      const snap = await db.collection('releases').where('uid', '==', currentUser.uid).orderBy('createdAt', 'desc').get();
+      __allReleases = [];
+      snap.forEach(doc => __allReleases.push({ id: doc.id, ...doc.data() }));
+      paintReleases();
+      document.getElementById('searchRelease').addEventListener('input', paintReleases);
+      document.getElementById('filterStatus').addEventListener('change', paintReleases);
+    }
+    function paintReleases() {
+      const q = (document.getElementById('searchRelease')?.value || '').toLowerCase();
+      const status = document.getElementById('filterStatus')?.value || '';
+      const grid = document.getElementById('releaseGrid');
+      let list = __allReleases.filter(r => {
+        const matchQ = !q || (r.title || '').toLowerCase().includes(q) || (r.tracks?.[0]?.mainArtist || '').toLowerCase().includes(q);
+        const matchS = !status || (r.status || 'pending') === status;
+        return matchQ && matchS;
+      });
+      if (list.length === 0) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="icon">🎼</div>No releases yet. Your submitted songs will appear here.</div>`;
+        return;
+      }
+      grid.innerHTML = list.map(r => `
     <div class="release-card">
-      <div class="release-art">${r.artworkUrl ? `<img src="${r.artworkUrl}" style="width:100%;height:100%;object-fit:cover">` : (r.title||'Untitled')}</div>
+      <div class="release-art">${r.artworkUrl ? `<img src="${r.artworkUrl}" style="width:100%;height:100%;object-fit:cover">` : (r.title || 'Untitled')}</div>
       <div class="release-body">
-        <span class="status-chip ${r.status||'pending'}">${r.status||'pending'}</span>
-        <h4>${r.title||'Untitled Release'}</h4>
+        <span class="status-chip ${r.status || 'pending'}">${r.status || 'pending'}</span>
+        <h4>${r.title || 'Untitled Release'}</h4>
         <div class="meta">By: ${r.tracks?.[0]?.mainArtist || '—'}</div>
-        <div class="meta">${(r.tracks||[]).length} track${(r.tracks||[]).length===1?'':'s'}</div>
+        <div class="meta">${(r.tracks || []).length} track${(r.tracks || []).length === 1 ? '' : 's'}</div>
       </div>
     </div>
   `).join('');
-}
+    }
 
-/* ========================= WIZARD ========================= */
-function stepsBar(){
-  const s = wizardStep;
-  const dot = (n,label)=>`
-    <div class="step ${s===n?'active':s>n?'done':''}">
-      <div class="circle">${s>n?'✓':n}</div><span class="label">${label}</span>
+    /* ========================= WIZARD ========================= */
+    function stepsBar() {
+      const s = wizardStep;
+      const dot = (n, label) => `
+    <div class="step ${s === n ? 'active' : s > n ? 'done' : ''}">
+      <div class="circle">${s > n ? '✓' : n}</div><span class="label">${label}</span>
     </div>`;
-  return `<div class="steps">${dot(1,'Release')}<div class="step-line"></div>${dot(2,'Tracks')}<div class="step-line"></div>${dot(3,'Rights')}</div>`;
-}
-function renderWizard(){
-  return `
+      return `<div class="steps">${dot(1, 'Release')}<div class="step-line"></div>${dot(2, 'Tracks')}<div class="step-line"></div>${dot(3, 'Rights')}</div>`;
+    }
+    function renderWizard() {
+      return `
   <div class="wizard-head">
     <h1>Add Release</h1>
     <p>Upload your release · Complete starred fields to continue</p>
@@ -639,12 +1486,12 @@ function renderWizard(){
   ${stepsBar()}
   <div id="wizardBody"></div>
   `;
-}
+    }
 
-/* ---- STEP 1: Release info ---- */
-function step1Html(){
-  const d = releaseDraft;
-  return `
+    /* ---- STEP 1: Release info ---- */
+    function step1Html() {
+      const d = releaseDraft;
+      return `
   <div class="panel">
     <h3>Release Details</h3>
     <div class="grid-2">
@@ -664,9 +1511,9 @@ function step1Html(){
         <div class="field"><label>Release Title <span class="req">*</span></label><input id="relTitle" placeholder="Release Title" value="${d.title}"></div>
         <div class="field"><label>Version / Subtitle (Optional)</label>
           <select id="relVersion">
-            <option ${d.version===''?'selected':''} value="">None</option>
-            <option ${d.version==='Acoustic'?'selected':''}>Acoustic</option>
-            <option ${d.version==='Live'?'selected':''}>Live</option>
+            <option ${d.version === '' ? 'selected' : ''} value="">None</option>
+            <option ${d.version === 'Acoustic' ? 'selected' : ''}>Acoustic</option>
+            <option ${d.version === 'Live' ? 'selected' : ''}>Live</option>
           </select>
         </div>
         <div class="field"><label>Label Name <span class="req">*</span></label>
@@ -686,13 +1533,13 @@ function step1Html(){
       <div class="field"><label>℗ Year & Holder <span class="req">*</span></label>
         <div class="row-inline">
           <select id="pYear" style="max-width:100px;"><option>2026</option><option>2025</option></select>
-          <input id="pHolder" placeholder="℗ Year Label" value="${d.pLine}">
+          <input id="pHolder" placeholder="℗ Year Label" value="℗ Mr. Lyricist">
         </div>
       </div>
       <div class="field"><label>© Year & Holder <span class="req">*</span></label>
         <div class="row-inline">
           <select id="cYear" style="max-width:100px;"><option>2026</option><option>2025</option></select>
-          <input id="cHolder" placeholder="© Year Label" value="${d.cLine}">
+          <input id="cHolder" placeholder="© Year Label" value="© Mr. Lyricist" >
         </div>
       </div>
     </div>
@@ -711,46 +1558,46 @@ function step1Html(){
     <button class="btn primary" onclick="goStep2()">Next — Track Details →</button>
   </div>
   `;
-}
-function bindWizardStep1(){
-  document.getElementById('wizardBody').innerHTML = step1Html();
-  document.getElementById('artworkInput').addEventListener('change', async (e)=>{
-    const file = e.target.files[0]; if(!file) return;
-    const box = document.getElementById('artworkBox');
-    box.innerHTML = 'Uploading…';
-    try{
-      const res = await cloudinaryUpload(file, 'image');
-      releaseDraft.artwork = res.secure_url;
-      box.innerHTML = `<img src="${res.secure_url}">`;
-    }catch(err){ toast('Artwork upload failed'); box.innerHTML='Click to upload<br>3000×3000 recommended'; }
-  });
-}
-function goStep2(){
-  releaseDraft.title = document.getElementById('relTitle').value;
-  releaseDraft.version = document.getElementById('relVersion').value;
-  releaseDraft.releaseDate = document.getElementById('relDate').value;
-  releaseDraft.originalDate = document.getElementById('origDate').value;
-  releaseDraft.pLine = document.getElementById('pHolder').value;
-  releaseDraft.cLine = document.getElementById('cHolder').value;
-  releaseDraft.priceBand = document.getElementById('priceBand').value;
-  releaseDraft.textLang = document.getElementById('textLang').value;
-  if(!releaseDraft.title || !releaseDraft.releaseDate || !releaseDraft.artwork){
-    toast('Please complete all starred fields'); return;
-  }
-  if(releaseDraft.tracks.length===0) releaseDraft.tracks.push(blankTrack());
-  wizardStep = 2;
-  document.querySelector('.steps').outerHTML = stepsBar();
-  renderStep2();
-}
-function blankTrack(){
-  return {file:null,url:null,title:'',mainArtist:'',feat:'',isrc:'',lyricist:'',composer:'',producer:'',publisher:'',genre:'',subGenre:'',explicit:'',lyricsLang:'',ytLink:'',lyrics:''};
-}
+    }
+    function bindWizardStep1() {
+      document.getElementById('wizardBody').innerHTML = step1Html();
+      document.getElementById('artworkInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        const box = document.getElementById('artworkBox');
+        box.innerHTML = 'Uploading…';
+        try {
+          const res = await cloudinaryUpload(file, 'image');
+          releaseDraft.artwork = res.secure_url;
+          box.innerHTML = `<img src="${res.secure_url}">`;
+        } catch (err) { toast('Artwork upload failed'); box.innerHTML = 'Click to upload<br>3000×3000 recommended'; }
+      });
+    }
+    function goStep2() {
+      releaseDraft.title = document.getElementById('relTitle').value;
+      releaseDraft.version = document.getElementById('relVersion').value;
+      releaseDraft.releaseDate = document.getElementById('relDate').value;
+      releaseDraft.originalDate = document.getElementById('origDate').value;
+      releaseDraft.pLine = document.getElementById('pHolder').value;
+      releaseDraft.cLine = document.getElementById('cHolder').value;
+      releaseDraft.priceBand = document.getElementById('priceBand').value;
+      releaseDraft.textLang = document.getElementById('textLang').value;
+      if (!releaseDraft.title || !releaseDraft.releaseDate || !releaseDraft.artwork) {
+        toast('Please complete all starred fields'); return;
+      }
+      if (releaseDraft.tracks.length === 0) releaseDraft.tracks.push(blankTrack());
+      wizardStep = 2;
+      document.querySelector('.steps').outerHTML = stepsBar();
+      renderStep2();
+    }
+    function blankTrack() {
+      return { file: null, url: null, title: '', mainArtist: '', feat: '', isrc: '', lyricist: '', composer: '', producer: '', publisher: '', genre: '', subGenre: '', explicit: '', lyricsLang: '', ytLink: '', lyrics: '' };
+    }
 
-/* ---- STEP 2: Tracks ---- */
-function renderStep2(){
-  const body = document.getElementById('wizardBody');
-  if(releaseDraft.tracks.length===0) releaseDraft.tracks.push(blankTrack());
-  body.innerHTML = `
+    /* ---- STEP 2: Tracks ---- */
+    function renderStep2() {
+      const body = document.getElementById('wizardBody');
+      if (releaseDraft.tracks.length === 0) releaseDraft.tracks.push(blankTrack());
+      body.innerHTML = `
   <div class="panel">
     <h3>Upload Tracks</h3>
     <div class="dropzone" id="dropzone">
@@ -771,64 +1618,64 @@ function renderStep2(){
     <button class="btn primary" onclick="goStep3()">Save & Next →</button>
   </div>
   `;
-  paintTrackBlocks();
-
-  const dz = document.getElementById('dropzone');
-  ['dragover','dragleave','drop'].forEach(ev=>{
-    dz.addEventListener(ev, e=>{
-      e.preventDefault();
-      dz.classList.toggle('drag', ev==='dragover');
-      if(ev==='drop') handleAudioFiles(e.dataTransfer.files);
-    });
-  });
-  document.getElementById('audioInput').addEventListener('change', e=> handleAudioFiles(e.target.files));
-}
-function backToStep1(){ wizardStep=1; document.querySelector('.steps').outerHTML=stepsBar(); bindWizardStep1(); }
-
-async function handleAudioFiles(fileList){
-  const files = Array.from(fileList).slice(0, 5 - releaseDraft.tracks.filter(t=>t.url).length);
-  if(files.length===0){ toast('Maximum 5 tracks per release'); return; }
-  for(const file of files){
-    let track = releaseDraft.tracks.find(t=>!t.url);
-    if(!track){ track = blankTrack(); releaseDraft.tracks.push(track); }
-    track.title = track.title || file.name.replace(/\.[^/.]+$/,'');
-    track._uploading = true;
-    paintTrackBlocks();
-    try{
-      const res = await cloudinaryUpload(file, 'video', pct=>{ // 'video' resource type handles audio in Cloudinary
-        track._progress = pct; paintTrackBlocks();
-      });
-      track.url = res.secure_url;
-      track.file = file.name;
-      track._uploading = false;
       paintTrackBlocks();
-    }catch(err){
-      toast('Track upload failed'); track._uploading=false; paintTrackBlocks();
-    }
-  }
-}
 
-function paintTrackBlocks(){
-  const wrap = document.getElementById('trackBlocks');
-  if(!wrap) return;
-  wrap.innerHTML = releaseDraft.tracks.map((t,i)=>`
+      const dz = document.getElementById('dropzone');
+      ['dragover', 'dragleave', 'drop'].forEach(ev => {
+        dz.addEventListener(ev, e => {
+          e.preventDefault();
+          dz.classList.toggle('drag', ev === 'dragover');
+          if (ev === 'drop') handleAudioFiles(e.dataTransfer.files);
+        });
+      });
+      document.getElementById('audioInput').addEventListener('change', e => handleAudioFiles(e.target.files));
+    }
+    function backToStep1() { wizardStep = 1; document.querySelector('.steps').outerHTML = stepsBar(); bindWizardStep1(); }
+
+    async function handleAudioFiles(fileList) {
+      const files = Array.from(fileList).slice(0, 5 - releaseDraft.tracks.filter(t => t.url).length);
+      if (files.length === 0) { toast('Maximum 5 tracks per release'); return; }
+      for (const file of files) {
+        let track = releaseDraft.tracks.find(t => !t.url);
+        if (!track) { track = blankTrack(); releaseDraft.tracks.push(track); }
+        track.title = track.title || file.name.replace(/\.[^/.]+$/, '');
+        track._uploading = true;
+        paintTrackBlocks();
+        try {
+          const res = await cloudinaryUpload(file, 'video', pct => { // 'video' resource type handles audio in Cloudinary
+            track._progress = pct; paintTrackBlocks();
+          });
+          track.url = res.secure_url;
+          track.file = file.name;
+          track._uploading = false;
+          paintTrackBlocks();
+        } catch (err) {
+          toast('Track upload failed'); track._uploading = false; paintTrackBlocks();
+        }
+      }
+    }
+
+    function paintTrackBlocks() {
+      const wrap = document.getElementById('trackBlocks');
+      if (!wrap) return;
+      wrap.innerHTML = releaseDraft.tracks.map((t, i) => `
     <div class="panel track-block">
-      <div class="tnum">${String(i+1).padStart(2,'0')} — ${t.title || 'untitled track'}</div>
+      <div class="tnum">${String(i + 1).padStart(2, '0')} — ${t.title || 'untitled track'}</div>
       <div class="grid-2">
         <div>
           <label style="display:block;font-size:12.5px;color:var(--ink-dim);margin-bottom:8px;">Track Upload <span style="color:var(--maroon-bright)">*</span></label>
           ${t.url
-            ? `<div class="audio-row"><span class="name">🎵 ${t.file}</span><button class="btn ghost small" onclick="replaceTrack(${i})">Replace</button></div>`
-            : t._uploading
-              ? `<div class="progress-bar"><div class="fill" style="width:${t._progress||0}%"></div></div><div style="font-size:12px;color:var(--ink-dim);margin-top:6px;">Uploading… ${t._progress||0}%</div>`
-              : `<div class="audio-row"><span class="name" style="color:var(--ink-dim)">No file uploaded yet</span></div>`
-          }
+          ? `<div class="audio-row"><span class="name">🎵 ${t.file}</span><button class="btn ghost small" onclick="replaceTrack(${i})">Replace</button></div>`
+          : t._uploading
+            ? `<div class="progress-bar"><div class="fill" style="width:${t._progress || 0}%"></div></div><div style="font-size:12px;color:var(--ink-dim);margin-top:6px;">Uploading… ${t._progress || 0}%</div>`
+            : `<div class="audio-row"><span class="name" style="color:var(--ink-dim)">No file uploaded yet</span></div>`
+        }
         </div>
         <div class="field"><label>ISRC Code (Optional)</label><input placeholder="Auto-generated" disabled style="opacity:.6"></div>
       </div>
       <div class="grid-2">
         <div class="field"><label>Track Title <span class="req">*</span></label><input value="${t.title}" oninput="updateTrack(${i},'title',this.value)"></div>
-        <div class="field"><label>Version / Subtitle (Optional)</label><input value="${t.version||''}" oninput="updateTrack(${i},'version',this.value)"></div>
+        <div class="field"><label>Version / Subtitle (Optional)</label><input value="${t.version || ''}" oninput="updateTrack(${i},'version',this.value)"></div>
       </div>
       <div class="grid-2">
         <div class="field"><label>Main Artist <span class="req">*</span></label><input placeholder="Search and add artist..." value="${t.mainArtist}" oninput="updateTrack(${i},'mainArtist',this.value)"></div>
@@ -839,18 +1686,19 @@ function paintTrackBlocks(){
         <div class="field"><label>Composer <span class="req">*</span></label><input value="${t.composer}" oninput="updateTrack(${i},'composer',this.value)"></div>
       </div>
       <div class="grid-2">
-        <div class="field"><label>Producer <span class="req">*</span></label><input value="${t.producer}" oninput="updateTrack(${i},'producer',this.value)"></div>
-        <div class="field"><label>Publisher <span class="req">*</span></label><input value="${t.publisher}" oninput="updateTrack(${i},'publisher',this.value)"></div>
+        <div class="field"><label>Producer <span class="req">*</span></label><input value="Mohima Shuklabaidya" oninput="updateTrack(${i},'producer',this.value)">
+          <li>Don't Change Producer and Publisher name it remain same.</li>
+        <div class="field"><label>Publisher <span class="req">*</span></label><input value="Mohima Shuklabaidya" oninput="updateTrack(${i},'publisher',this.value)"></div>
       </div>
       <div class="grid-2">
         <div class="field"><label>Main Genre <span class="req">*</span></label>
           <select onchange="updateTrack(${i},'genre',this.value)">
             <option value="">Select Genre</option>
-            <option ${t.genre==='Pop'?'selected':''}>Pop</option>
-            <option ${t.genre==='Hip-Hop'?'selected':''}>Hip-Hop</option>
-            <option ${t.genre==='Devotional'?'selected':''}>Devotional</option>
-            <option ${t.genre==='Romantic'?'selected':''}>Romantic</option>
-            <option ${t.genre==='Folk'?'selected':''}>Folk</option>
+            <option ${t.genre === 'Pop' ? 'selected' : ''}>Pop</option>
+            <option ${t.genre === 'Hip-Hop' ? 'selected' : ''}>Hip-Hop</option>
+            <option ${t.genre === 'Devotional' ? 'selected' : ''}>Devotional</option>
+            <option ${t.genre === 'Romantic' ? 'selected' : ''}>Romantic</option>
+            <option ${t.genre === 'Folk' ? 'selected' : ''}>Folk</option>
           </select>
         </div>
         <div class="field"><label>Sub Genre <span class="req">*</span></label><input placeholder="Select Subgenre" value="${t.subGenre}" oninput="updateTrack(${i},'subGenre',this.value)"></div>
@@ -859,17 +1707,17 @@ function paintTrackBlocks(){
         <div class="field"><label>Explicit Content <span class="req">*</span></label>
           <select onchange="updateTrack(${i},'explicit',this.value)">
             <option value="">Select</option>
-            <option ${t.explicit==='No'?'selected':''}>No</option>
-            <option ${t.explicit==='Yes'?'selected':''}>Yes</option>
+            <option ${t.explicit === 'No' ? 'selected' : ''}>No</option>
+            <option ${t.explicit === 'Yes' ? 'selected' : ''}>Yes</option>
           </select>
         </div>
         <div class="field"><label>Lyrics Language <span class="req">*</span></label>
           <select onchange="updateTrack(${i},'lyricsLang',this.value)">
             <option value="">Select Lyrics Language</option>
-            <option ${t.lyricsLang==='Hindi'?'selected':''}>Hindi</option>
-            <option ${t.lyricsLang==='Hinglish'?'selected':''}>Hinglish</option>
-            <option ${t.lyricsLang==='English'?'selected':''}>English</option>
-            <option ${t.lyricsLang==='Urdu'?'selected':''}>Urdu</option>
+            <option ${t.lyricsLang === 'Hindi' ? 'selected' : ''}>Hindi</option>
+            <option ${t.lyricsLang === 'Hinglish' ? 'selected' : ''}>Hinglish</option>
+            <option ${t.lyricsLang === 'English' ? 'selected' : ''}>English</option>
+            <option ${t.lyricsLang === 'Urdu' ? 'selected' : ''}>Urdu</option>
           </select>
         </div>
       </div>
@@ -877,31 +1725,31 @@ function paintTrackBlocks(){
       <div class="field"><label>Lyrics</label><textarea rows="4" placeholder="Paste full lyrics (optional)" oninput="updateTrack(${i},'lyrics',this.value)">${t.lyrics}</textarea></div>
     </div>
   `).join('');
-}
-function updateTrack(i, key, val){ releaseDraft.tracks[i][key] = val; }
-function replaceTrack(i){
-  const input = document.createElement('input');
-  input.type='file'; input.accept='audio/*';
-  input.onchange = (e)=>{
-    releaseDraft.tracks[i] = {...blankTrack(), title:releaseDraft.tracks[i].title};
-    handleAudioFiles(e.target.files);
-  };
-  input.click();
-}
-function goStep3(){
-  const missing = releaseDraft.tracks.some(t=> !t.url || !t.title || !t.mainArtist || !t.lyricist || !t.composer);
-  if(missing){ toast('Please complete all starred track fields'); return; }
-  wizardStep = 3;
-  document.querySelector('.steps').outerHTML = stepsBar();
-  renderStep3();
-}
+    }
+    function updateTrack(i, key, val) { releaseDraft.tracks[i][key] = val; }
+    function replaceTrack(i) {
+      const input = document.createElement('input');
+      input.type = 'file'; input.accept = 'audio/*';
+      input.onchange = (e) => {
+        releaseDraft.tracks[i] = { ...blankTrack(), title: releaseDraft.tracks[i].title };
+        handleAudioFiles(e.target.files);
+      };
+      input.click();
+    }
+    function goStep3() {
+      const missing = releaseDraft.tracks.some(t => !t.url || !t.title || !t.mainArtist || !t.lyricist || !t.composer);
+      if (missing) { toast('Please complete all starred track fields'); return; }
+      wizardStep = 3;
+      document.querySelector('.steps').outerHTML = stepsBar();
+      renderStep3();
+    }
 
-/* ---- STEP 3: Rights / Agreement ---- */
-function renderStep3(){
-  const body = document.getElementById('wizardBody');
-  const ag = releaseDraft.agreement;
-  const artistName = releaseDraft.tracks[0]?.mainArtist || currentUser?.email || 'Artist';
-  body.innerHTML = `
+    /* ---- STEP 3: Rights / Agreement ---- */
+    function renderStep3() {
+      const body = document.getElementById('wizardBody');
+      const ag = releaseDraft.agreement;
+      const artistName = releaseDraft.tracks[0]?.mainArtist || currentUser?.email || 'Artist';
+      body.innerHTML = `
   <div class="agreement-card">
     <div class="agreement-header">
       <div class="seal">ML</div>
@@ -913,7 +1761,7 @@ function renderStep3(){
       <div class="clause">
         <div class="num">Clause I</div>
         <h4>Ownership Declaration</h4>
-        <p>The Artist declares that "<i>${releaseDraft.title||'this release'}</i>" and all associated tracks submitted herein are original works, that the Artist holds full legal ownership or licensed rights to all compositions, recordings, and lyrics, and that the submission does not infringe upon any third-party copyright.</p>
+        <p>The Artist declares that "<i>${releaseDraft.title || 'this release'}</i>" and all associated tracks submitted herein are original works, that the Artist holds full legal ownership or licensed rights to all compositions, recordings, and lyrics, and that the submission does not infringe upon any third-party copyright.</p>
       </div>
 
       <div class="clause">
@@ -934,20 +1782,20 @@ function renderStep3(){
         <div class="num">Declaration</div>
         <h4>Confirm the following before signing</h4>
         <div class="checklist">
-          <label class="check-item ${ag.ownership?'checked':''}">
-            <input type="checkbox" ${ag.ownership?'checked':''} onchange="toggleAgreement('ownership',this.checked)">
+          <label class="check-item ${ag.ownership ? 'checked' : ''}">
+            <input type="checkbox" ${ag.ownership ? 'checked' : ''} onchange="toggleAgreement('ownership',this.checked)">
             <span>I confirm I am the original owner / rights holder of this work and have the authority to submit it for distribution.</span>
           </label>
-          <label class="check-item ${ag.accurate?'checked':''}">
-            <input type="checkbox" ${ag.accurate?'checked':''} onchange="toggleAgreement('accurate',this.checked)">
+          <label class="check-item ${ag.accurate ? 'checked' : ''}">
+            <input type="checkbox" ${ag.accurate ? 'checked' : ''} onchange="toggleAgreement('accurate',this.checked)">
             <span>I confirm all metadata, credits, and information provided in this submission are accurate to the best of my knowledge.</span>
           </label>
-          <label class="check-item ${ag.noInfringe?'checked':''}">
-            <input type="checkbox" ${ag.noInfringe?'checked':''} onchange="toggleAgreement('noInfringe',this.checked)">
+          <label class="check-item ${ag.noInfringe ? 'checked' : ''}">
+            <input type="checkbox" ${ag.noInfringe ? 'checked' : ''} onchange="toggleAgreement('noInfringe',this.checked)">
             <span>I confirm this release does not infringe upon any third-party copyright, trademark, or intellectual property.</span>
           </label>
-          <label class="check-item ${ag.royaltyAccepted?'checked':''}">
-            <input type="checkbox" ${ag.royaltyAccepted?'checked':''} onchange="toggleAgreement('royaltyAccepted',this.checked)">
+          <label class="check-item ${ag.royaltyAccepted ? 'checked' : ''}">
+            <input type="checkbox" ${ag.royaltyAccepted ? 'checked' : ''} onchange="toggleAgreement('royaltyAccepted',this.checked)">
             <span>I accept the 70% Artist / 30% Label royalty split as stated in Clause II above.</span>
           </label>
         </div>
@@ -957,26 +1805,26 @@ function renderStep3(){
         <div class="num">Signature</div>
         <h4>Sign This Agreement</h4>
         <div class="sig-tabs">
-          <div class="sig-tab ${ag.sigType==='typed'?'active':''}" onclick="setSigType('typed')">Type Full Name</div>
-          <div class="sig-tab ${ag.sigType==='drawn'?'active':''}" onclick="setSigType('drawn')">Draw Signature</div>
+          <div class="sig-tab ${ag.sigType === 'typed' ? 'active' : ''}" onclick="setSigType('typed')">Type Full Name</div>
+          <div class="sig-tab ${ag.sigType === 'drawn' ? 'active' : ''}" onclick="setSigType('drawn')">Draw Signature</div>
         </div>
-        <div class="sig-pane ${ag.sigType==='typed'?'active':''}" id="sigTyped">
+        <div class="sig-pane ${ag.sigType === 'typed' ? 'active' : ''}" id="sigTyped">
           <input id="typedNameInput" placeholder="Type your full legal name" value="${ag.typedName}" oninput="updateTypedSig(this.value)">
           <div class="sig-typed-preview" id="typedPreview">${ag.typedName || ''}</div>
         </div>
-        <div class="sig-pane ${ag.sigType==='drawn'?'active':''}" id="sigDrawn">
+        <div class="sig-pane ${ag.sigType === 'drawn' ? 'active' : ''}" id="sigDrawn">
           <canvas id="sigCanvas"></canvas>
           <div class="sig-actions"><button class="btn ghost small" onclick="clearCanvas()">Clear</button></div>
         </div>
-        <label class="check-item ${ag.agreedFinal?'checked':''}" style="margin-top:18px;">
-          <input type="checkbox" ${ag.agreedFinal?'checked':''} onchange="toggleAgreement('agreedFinal',this.checked)">
+        <label class="check-item ${ag.agreedFinal ? 'checked' : ''}" style="margin-top:18px;">
+          <input type="checkbox" ${ag.agreedFinal ? 'checked' : ''} onchange="toggleAgreement('agreedFinal',this.checked)">
           <span><b>I have read, understood, and agree</b> to all terms of this Distribution Rights Agreement, including the royalty split and ownership declaration stated above.</span>
         </label>
       </div>
 
     </div>
     <div class="agreement-footer">
-      <div class="date-stamp">Date: ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})}</div>
+      <div class="date-stamp">Date: ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
       <div style="display:flex; gap:14px;">
         <button class="btn ghost" onclick="backToStep2()">← Previous</button>
         <button class="btn primary" id="submitBtn" onclick="submitRelease()">Sign & Submit for Distribution</button>
@@ -984,95 +1832,100 @@ function renderStep3(){
     </div>
   </div>
   `;
-  if(ag.sigType==='drawn') setTimeout(initCanvas, 50);
-}
-function backToStep2(){ wizardStep=2; document.querySelector('.steps').outerHTML=stepsBar(); renderStep2(); }
-function toggleAgreement(key,val){ releaseDraft.agreement[key]=val; renderStep3(); }
-function setSigType(type){ releaseDraft.agreement.sigType=type; renderStep3(); }
-function updateTypedSig(val){
-  releaseDraft.agreement.typedName = val;
-  document.getElementById('typedPreview').textContent = val;
-}
-let canvasCtx, drawing=false;
-function initCanvas(){
-  const canvas = document.getElementById('sigCanvas');
-  if(!canvas) return;
-  canvas.width = canvas.offsetWidth * 2; canvas.height = canvas.offsetHeight * 2;
-  canvasCtx = canvas.getContext('2d');
-  canvasCtx.scale(2,2);
-  canvasCtx.strokeStyle = '#e3c98c'; canvasCtx.lineWidth = 2.4; canvasCtx.lineCap='round';
-  const pos = e=>{
-    const r = canvas.getBoundingClientRect();
-    const cx = (e.touches? e.touches[0].clientX : e.clientX) - r.left;
-    const cy = (e.touches? e.touches[0].clientY : e.clientY) - r.top;
-    return [cx,cy];
-  };
-  const start = e=>{ drawing=true; const [x,y]=pos(e); canvasCtx.beginPath(); canvasCtx.moveTo(x,y); };
-  const move = e=>{ if(!drawing) return; e.preventDefault(); const [x,y]=pos(e); canvasCtx.lineTo(x,y); canvasCtx.stroke(); };
-  const end = ()=>{ if(!drawing) return; drawing=false; releaseDraft.agreement.drawnDataUrl = canvas.toDataURL(); };
-  canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
-  canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', move); canvas.addEventListener('touchend', end);
-}
-function clearCanvas(){
-  const canvas = document.getElementById('sigCanvas');
-  canvasCtx.clearRect(0,0,canvas.width,canvas.height);
-  releaseDraft.agreement.drawnDataUrl = null;
-}
+      if (ag.sigType === 'drawn') setTimeout(initCanvas, 50);
+    }
+    function backToStep2() { wizardStep = 2; document.querySelector('.steps').outerHTML = stepsBar(); renderStep2(); }
+    function toggleAgreement(key, val) { releaseDraft.agreement[key] = val; renderStep3(); }
+    function setSigType(type) { releaseDraft.agreement.sigType = type; renderStep3(); }
+    function updateTypedSig(val) {
+      releaseDraft.agreement.typedName = val;
+      document.getElementById('typedPreview').textContent = val;
+    }
+    let canvasCtx, drawing = false;
+    function initCanvas() {
+      const canvas = document.getElementById('sigCanvas');
+      if (!canvas) return;
+      canvas.width = canvas.offsetWidth * 2; canvas.height = canvas.offsetHeight * 2;
+      canvasCtx = canvas.getContext('2d');
+      canvasCtx.scale(2, 2);
+      canvasCtx.strokeStyle = '#e3c98c'; canvasCtx.lineWidth = 2.4; canvasCtx.lineCap = 'round';
+      const pos = e => {
+        const r = canvas.getBoundingClientRect();
+        const cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+        const cy = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+        return [cx, cy];
+      };
+      const start = e => { drawing = true; const [x, y] = pos(e); canvasCtx.beginPath(); canvasCtx.moveTo(x, y); };
+      const move = e => { if (!drawing) return; e.preventDefault(); const [x, y] = pos(e); canvasCtx.lineTo(x, y); canvasCtx.stroke(); };
+      const end = () => { if (!drawing) return; drawing = false; releaseDraft.agreement.drawnDataUrl = canvas.toDataURL(); };
+      canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
+      canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', move); canvas.addEventListener('touchend', end);
+    }
+    function clearCanvas() {
+      const canvas = document.getElementById('sigCanvas');
+      canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+      releaseDraft.agreement.drawnDataUrl = null;
+    }
 
-async function submitRelease(){
-  const ag = releaseDraft.agreement;
-  const allChecked = ag.ownership && ag.accurate && ag.noInfringe && ag.royaltyAccepted && ag.agreedFinal;
-  const hasSig = ag.sigType==='typed' ? !!ag.typedName.trim() : !!ag.drawnDataUrl;
-  if(!allChecked){ toast('Please confirm all declarations before signing'); return; }
-  if(!hasSig){ toast('Please provide your signature'); return; }
+    async function submitRelease() {
+      const ag = releaseDraft.agreement;
+      const allChecked = ag.ownership && ag.accurate && ag.noInfringe && ag.royaltyAccepted && ag.agreedFinal;
+      const hasSig = ag.sigType === 'typed' ? !!ag.typedName.trim() : !!ag.drawnDataUrl;
+      if (!allChecked) { toast('Please confirm all declarations before signing'); return; }
+      if (!hasSig) { toast('Please provide your signature'); return; }
 
-  const btn = document.getElementById('submitBtn');
-  btn.disabled = true; btn.textContent = 'Submitting…';
-  ag.signedAt = new Date().toISOString();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true; btn.textContent = 'Submitting…';
+      ag.signedAt = new Date().toISOString();
 
-  try{
-    await db.collection('releases').add({
-      uid: currentUser.uid,
-      title: releaseDraft.title,
-      version: releaseDraft.version,
-      labelName: releaseDraft.labelName,
-      releaseDate: releaseDraft.releaseDate,
-      originalDate: releaseDraft.originalDate,
-      pLine: releaseDraft.pLine,
-      cLine: releaseDraft.cLine,
-      priceBand: releaseDraft.priceBand,
-      textLang: releaseDraft.textLang,
-      artworkUrl: releaseDraft.artwork,
-      tracks: releaseDraft.tracks.map(t=>({
-        title:t.title, mainArtist:t.mainArtist, feat:t.feat, url:t.url,
-        lyricist:t.lyricist, composer:t.composer, producer:t.producer, publisher:t.publisher,
-        genre:t.genre, subGenre:t.subGenre, explicit:t.explicit, lyricsLang:t.lyricsLang,
-        ytLink:t.ytLink, lyrics:t.lyrics
-      })),
-      agreement: {
-        royaltySplit:{artist:70, label:30},
-        ownership: ag.ownership, accurate: ag.accurate, noInfringe: ag.noInfringe,
-        royaltyAccepted: ag.royaltyAccepted, agreedFinal: ag.agreedFinal,
-        sigType: ag.sigType, typedName: ag.typedName, drawnSignature: ag.drawnDataUrl,
-        signedAt: ag.signedAt
-      },
-      status: 'pending',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    toast('Release signed & submitted for review 🎉');
-    releaseDraft = { artwork:null, title:"", version:"", labelName:"Mr. Lyricist",
-      releaseDate:"", originalDate:"", pLine:"", cLine:"", priceBand:"Standard", textLang:"",
-      tracks:[], agreement:{ ownership:false, accurate:false, noInfringe:false, royaltyAccepted:false,
-        sigType:"typed", typedName:"", drawnDataUrl:null, agreedFinal:false, signedAt:null } };
-    navigate('releases');
-  }catch(err){
-    toast('Submission failed: ' + err.message);
-    btn.disabled = false; btn.textContent = 'Sign & Submit for Distribution';
-  }
-}
+      try {
+        await db.collection('releases').add({
+          uid: currentUser.uid,
+          title: releaseDraft.title,
+          version: releaseDraft.version,
+          labelName: releaseDraft.labelName,
+          releaseDate: releaseDraft.releaseDate,
+          originalDate: releaseDraft.originalDate,
+          pLine: releaseDraft.pLine,
+          cLine: releaseDraft.cLine,
+          priceBand: releaseDraft.priceBand,
+          textLang: releaseDraft.textLang,
+          artworkUrl: releaseDraft.artwork,
+          tracks: releaseDraft.tracks.map(t => ({
+            title: t.title, mainArtist: t.mainArtist, feat: t.feat, url: t.url,
+            lyricist: t.lyricist, composer: t.composer, producer: t.producer, publisher: t.publisher,
+            genre: t.genre, subGenre: t.subGenre, explicit: t.explicit, lyricsLang: t.lyricsLang,
+            ytLink: t.ytLink, lyrics: t.lyrics
+          })),
+          agreement: {
+            royaltySplit: { artist: 70, label: 30 },
+            ownership: ag.ownership, accurate: ag.accurate, noInfringe: ag.noInfringe,
+            royaltyAccepted: ag.royaltyAccepted, agreedFinal: ag.agreedFinal,
+            sigType: ag.sigType, typedName: ag.typedName, drawnSignature: ag.drawnDataUrl,
+            signedAt: ag.signedAt
+          },
+          status: 'pending',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        toast('Release signed & submitted for review 🎉');
+        releaseDraft = {
+          artwork: null, title: "", version: "", labelName: "Mr. Lyricist",
+          releaseDate: "", originalDate: "", pLine: "", cLine: "", priceBand: "Standard", textLang: "",
+          tracks: [], agreement: {
+            ownership: false, accurate: false, noInfringe: false, royaltyAccepted: false,
+            sigType: "typed", typedName: "", drawnDataUrl: null, agreedFinal: false, signedAt: null
+          }
+        };
+        navigate('releases');
+      } catch (err) {
+        toast('Submission failed: ' + err.message);
+        btn.disabled = false; btn.textContent = 'Sign & Submit for Distribution';
+      }
+    }
 
-/* ========================= init ========================= */
-render();
-</script>
+    /* ========================= init ========================= */
+    render();
+  </script>
 </body>
+
 </html>
